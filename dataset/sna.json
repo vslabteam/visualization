@@ -1,0 +1,388 @@
+{
+  "nodes": [
+  {
+     "x":-922.24444
+    ,"y":347.29444
+    ,"class":"person","comboId": "comboA"
+    ,"id":"0"
+  },
+  {
+     "x":-814.42222
+    ,"y":409.16111
+    ,"class":"book","comboId": "comboB"
+    ,"id":"1"
+  },
+  {
+     "x":-738
+    ,"y":427.33333000000005
+    ,"class":"person","comboId": "comboA"
+    ,"id":"2"
+  },
+  {
+     "x":-784.5
+    ,"y":381.33333
+    ,"class":"person","comboId": "comboA"
+    ,"id":"3"
+  },
+  {
+     "x":-1066.09167
+    ,"y":350.40278
+    ,"class":"place","comboId": "comboC"
+    ,"id":"4"
+  },
+  {
+     "x":-925.4861099999999
+    ,"y":313.275
+    ,"class":"place","comboId": "comboC"
+    ,"id":"5"
+  },
+  {
+     "x":-835.5
+    ,"y":450.83333000000005
+    ,"class":"book","comboId": "comboB"
+    ,"id":"6"
+  },
+  {
+     "x":-1241
+    ,"y":409.83333000000005
+    ,"class":"person","comboId": "comboA"
+    ,"id":"7"
+  },
+  {
+     "x":-825.4166700000001
+    ,"y":354.36110999999994
+    ,"class":"place","comboId": "comboC"
+    ,"id":"8"
+  },
+  {
+     "x":-976.7
+    ,"y":301.94444
+    ,"class":"place","comboId": "comboC"
+    ,"id":"9"
+  },
+  {
+     "x":-881.3333299999999
+    ,"y":444.83333000000005
+    ,"class":"place","comboId": "comboC"
+    ,"id":"10"
+  },
+  {
+     "x":-766.6833300000001
+    ,"y":391.75278
+    ,"class":"book","comboId": "comboB"
+    ,"id":"11"
+  },
+  {
+     "x":-688.16667
+    ,"y":448
+    ,"class":"place","comboId": "comboC"
+    ,"id":"12"
+  },
+  {
+     "x":-887.73056
+    ,"y":370.60277999999994
+    ,"class":"person","comboId": "comboA"
+    ,"id":"13"
+  },
+  {
+     "x":-856.83333
+    ,"y":302.16667
+    ,"class":"place","comboId": "comboC"
+    ,"id":"14"
+  },
+  {
+     "x":-1225.33333
+    ,"y":488
+    ,"class":"book","comboId": "comboB"
+    ,"id":"15"
+  },
+  {
+     "x":-949.33333
+    ,"y":475.16666999999995
+    ,"class":"book","comboId": "comboB"
+    ,"id":"16"
+  },
+  {
+     "x":-1124.975
+    ,"y":459.54722
+    ,"class":"place","comboId": "comboC"
+    ,"id":"17"
+  },
+  {
+     "x":-1085.33333
+    ,"y":458
+    ,"class":"place","comboId": "comboC"
+    ,"id":"18"
+  },
+  {
+     "x":-867.5
+    ,"y":335.66667
+    ,"class":"book","comboId": "comboB"
+    ,"id":"19"
+  },
+  {
+     "x":-837.43611
+    ,"y":429.65556
+    ,"class":"book","comboId": "comboB"
+    ,"id":"20"
+  }  
+],
+
+"edges":[
+  {
+      "id": "e0",
+      "source": "16",
+      "target": "13",
+      "relation":"Read"
+    },
+    {
+      "id": "e1",
+      "source": "0",
+      "target": "15",
+      "relation":"Read"
+    },
+    {
+      "id": "e2",
+      "source": "0",
+      "target": "19",
+      "relation":"Read"
+    },
+    {
+      "id": "e3",
+      "source": "0",
+      "target": "5",
+      "relation":"Visit"
+    },
+    {
+      "id": "e4",
+      "source": "0",
+      "target": "8",
+      "relation":"Visit"
+    },
+    {
+      "id": "e5",
+      "source": "0",
+      "target": "16",
+      "relation":"Read"
+    },
+    {
+      "id": "e6",
+      "source": "0",
+      "target": "1",
+      "relation":"Read"
+    },
+    {
+      "id": "e7",
+      "source": "1",
+      "target": "9"
+    },
+    {
+      "id": "e8",
+      "source": "1",
+      "target": "5"
+    },
+    {
+      "id": "e9",
+      "source": "1",
+      "target": "3"
+    },
+    {
+      "id": "e10",
+      "source": "2",
+      "target": "11",
+      "relation":"Read"
+    },
+    {
+      "id": "e11",
+      "source": "2",
+      "target": "15",
+      "relation":"Read"
+    },
+    {
+      "id": "e12",
+      "source": "2",
+      "target": "4",
+      "relation":"Visit"
+    },
+    {
+      "id": "e13",
+      "source": "2",
+      "target": "18",
+      "relation":"Visit"
+    },
+    {
+      "id": "e14",
+      "source": "12",
+      "target": "15",
+      "relation":"At"
+    },
+    {
+      "id": "e15",
+      "source": "2",
+      "target": "8",
+      "relation":"Visit"
+    },
+    {
+      "id": "e16",
+      "source": "12",
+      "target": "19",
+      "relation":"At"
+    },
+    {
+      "id": "e17",
+      "source": "3",
+      "target": "10",
+      "relation":"Visit"
+    },
+    {
+      "id": "e18",
+      "source": "3",
+      "target": "20",
+      "relation":"Read"
+    },
+    {
+      "id": "e19",
+      "source": "4",
+      "target": "13",
+      "relation":"Visit"
+    },
+    {
+      "id": "e20",
+      "source": "3",
+      "target": "14",
+      "relation":"Visit"
+    },
+    {
+      "id": "e21",
+      "source": "4",
+      "target": "7",
+      "relation":"Visit"
+    },
+    {
+      "id": "e22",
+      "source": "4",
+      "target": "20",
+      "relation":"At"
+    },
+    {
+      "id": "e23",
+      "source": "4",
+      "target": "15",
+      "relation":"At"
+    },
+    {
+      "id": "e24",
+      "source": "4",
+      "target": "16",
+      "relation":"At"
+    },
+    {
+      "id": "e25",
+      "source": "4",
+      "target": "11",
+      "relation":"At"
+    },
+    {
+      "id": "e26",
+      "source": "5",
+      "target": "15",
+      "relation":"At"
+    },
+    {
+      "id": "e27",
+      "source": "5",
+      "target": "13",
+      "relation":"Visit"
+    },
+    {
+      "id": "e28",
+      "source": "6",
+      "target": "18",
+      "relation":"At"
+    },
+    {
+      "id": "e29",
+      "source": "6",
+      "target": "13",
+      "relation":"Read"
+    },
+    {
+      "id": "e30",
+      "source": "7",
+      "target": "17",
+      "relation":"Visit"
+    },
+    {
+      "id": "e31",
+      "source": "7",
+      "target": "12",
+      "relation":"Visit"
+    },
+    {
+      "id": "e32",
+      "source": "7",
+      "target": "11",
+      "relation":"Read"
+    },
+    {
+      "id": "e33",
+      "source": "8",
+      "target": "16",
+      "relation":"At"
+    },
+    {
+      "id": "e34",
+      "source": "8",
+      "target": "7",
+      "relation":"Visit"
+    },
+    {
+      "id": "e35",
+      "source": "8",
+      "target": "1",
+      "relation":"At"
+    },
+    {
+      "id": "e36",
+      "source": "8",
+      "target": "20",
+      "relation":"At"
+    },
+    {
+      "id": "e37",
+      "source": "9",
+      "target": "7",
+      "relation":"Visit"
+    },
+    {
+      "id": "e38",
+      "source": "9",
+      "target": "15",
+      "relation":"At"
+    },
+    {
+      "id": "e39",
+      "source": "9",
+      "target": "7"
+    },
+    {
+      "id": "e40",
+      "source": "9",
+      "target": "3",
+      "relation":"Visit"
+    }    
+],
+"combos": [
+  { 
+    "id": "comboA",
+    "label": "Combo of persons"
+  },
+  { 
+    "id": "comboB",
+    "label": "Combo of books"
+  },
+  { 
+    "id": "comboC",
+    "label": "Combo of places"
+  }]
+}

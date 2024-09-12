@@ -1,0 +1,1846 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Graph Visualization</title>
+  </head>
+
+  <body>
+
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    
+		<!-- 开发环境版本，包含了有帮助的命令行警告 -->
+		<script src="https://unpkg.com/vue"></script>
+
+		<!-- import JavaScript -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+
+    <!-- 使用antv G6的最新生产环境版本 -->
+    <script src="https://gw.alipayobjects.com/os/antv/pkg/_antv.g6-{5.0.19}/build/g6.js"></script>
+
+    <!-- 使用jspdf来生成pdf文档 -->
+    <script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
+
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+    integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+    crossorigin=""/>
+
+     <!-- Make sure you put this AFTER Leaflet's CSS -->
+ <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+ integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+ crossorigin=""></script>
+
+
+
+
+
+
+  
+
+
+
+    <style>
+      /* 提示框的样式 */
+      .g6-tooltip {
+      border: 1px solid #9fc92e;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #8f1b1b;
+      background-color: rgba(255, 255, 255, 0.9);
+      padding: 10px 8px;
+      box-shadow: rgb(33, 165, 66) 0px 0px 10px;
+      }
+  
+      
+    </style>
+
+
+
+
+
+
+<div id="main" style="width:1520px">
+
+	<div id="header" style="background-color:#FFA500;text-align:center;">
+      <h1 style="margin-bottom:0;">Forensic Visualization Tool</h1>
+  </div>
+	
+	<aside id="ctrlPanel" style="background-color:steelblue;height:660px;width:200px;float:left;">
+  <b>Control Panel</b><br>  
+	<el-divider></el-divider>
+	
+
+	<b>Layout</b><br>
+	<div id="layoutCtrl">
+
+	  <select v-model="selected" @change='changeLayout'>
+	  <option v-for="option in options" v-bind:value="option.value">
+		    {{ option.text }}
+	  </option>
+    </select>
+    
+    <br>
+    
+  	<span>Selected: {{selected}}</span><br><br><br>
+  </div>
+
+  <el-divider></el-divider>
+  <b>Demo Case</b><br>
+  <div id="caseCtrl">
+    <select v-model="selected"  @change='changeData'>
+        <option v-for="option in options" v-bind:value="option.value">
+        {{ option.text }}
+        </option>
+    </select>
+    <br>
+    <span>Selected: {{selected}}</span><br><br><br>
+  </div>
+
+  <el-divider></el-divider>
+  <b>Behavior</b><br>
+  <select id="selector">
+    <option value="default">default</option>
+    <option value="addNode">addNode</option>
+    <option value="addEdge">addEdge</option>
+  </select>
+
+
+	
+	</aside>
+	
+
+
+	<div id="graphContainer" style="background-color:#EEEEEE;height:660px;width:1120px;float:left;">
+  </div>
+
+	<div id="displayInfo" style="background-color:steelblue;height:660px;width:200px;float:right;">
+
+	<el-divider></el-divider>
+
+	<b>Display Panel</b><br>
+  <b>Network</b><br>
+  
+  <div id="info">
+    <span v-bind:title="message">
+      
+    </span>
+  </div>
+
+<div id="elements">
+
+</div>
+<br><br>
+      
+
+        <el-divider></el-divider>
+      <b>Selection</b><br>
+      Nodes:<br>
+      Edges:<br><br><br>
+
+      <el-divider></el-divider>
+      <b>Clicked Item</b><br>
+      Number:<br>
+      Edges:<br><br><br>
+
+
+</div>	
+	
+	<div id="footer" style="background-color:#FFA500;clear:both;text-align:center;"> Demo </div>
+	
+</div>
+
+
+
+
+<script>
+  
+
+
+
+
+
+
+
+
+
+
+
+  var numOfNodes=99;
+  var numOfEdges=99;
+
+
+
+   var app2 = new Vue({
+  el: '#info',
+  data: {
+    message: "",
+  }
+});
+
+app2.message=numOfNodes.toString();
+
+
+   var layoutCtrlVueObject=new Vue({
+    el: '#layoutCtrl',
+    data: {
+      selected: 'Force Layout',
+      options: [
+        { text: 'Force Layout', value: 'Force Layout' },
+        { text: 'Grid Layout', value: 'Grid Layout' },
+        { text: 'Circular Layout', value: 'Circular Layout' },
+        { text: 'Random Layout', value: 'Random Layout' },
+        { text: 'Fruchterman Layout', value: 'Fruchterman Layout' },
+        { text: 'Concentric Layout', value: 'Concentric Layout' },
+        { text: 'MDS Layout', value: 'MDS Layout' },
+        { text: 'Dagre Layout', value: 'Dagre Layout' },
+        { text: 'Radial Layout', value: 'Radial Layout' },
+        { text: 'Combo Force Layout', value: 'Combo Force Layout' }
+      ]
+    },
+
+  methods: {
+      changeLayout: function(){
+          switch(this.selected){
+              case 'Force Layout':
+              {					
+                  graph.updateLayout({
+                      type: 'force',               // 布局名称
+                      preventOverlap: false,        // 布局参数，是否允许重叠
+                      linkDistance: 200,            // 布局参数，边长
+                      workerEnabled:true,
+                    });
+                  break;
+              };
+              case 'Grid Layout':
+              {					
+                  graph.updateLayout({
+                      type: 'grid',
+                      begin: [ 0, 0 ],          // 可选，
+                      preventOverlap: true,     // 可选，必须配合 nodeSize
+                      preventOverlapPdding: 20, // 可选
+                      //nodeSize: 30,             // 可选
+                      condense: false,          // 可选
+                      rows: 5,                  // 可选
+                      cols: 5,                  // 可选
+                      sortBy: 'degree',        // 可选
+                      workerEnabled: true,       // 可选，开启 web-worker
+                    });
+                  break;
+              };
+              case 'Circular Layout':
+                  {					
+                      graph.updateLayout({
+                          type: 'circular',
+                          //center: [300, 300], // 可选，默认为图的中心
+                          radius: 250, // 可选
+                          startRadius: 10, // 可选
+                          endRadius: 100, // 可选
+                          clockwise: false, // 可选
+                          divisions: 5, // 可选
+                          ordering: 'degree', // 可选
+                          angleRatio: 1, // 可选
+                          workerEnabled:true,
+                        });
+                      break;
+                  };
+              case 'Random Layout':
+                  {					
+                      graph.updateLayout({
+                          type: 'random',
+                          width: 300,
+                          height: 300,
+                          workerEnabled:true,
+                          });
+                      break;
+                  };
+              case 'Fruchterman Layout':
+                  {					
+                      graph.updateLayout({
+                          type: 'fruchterman',
+                          center: [ 200, 200 ],     // 可选，默认为图的中心
+                          gravity: 20,              // 可选
+                          speed: 2,                 // 可选
+                          clustering: true,         // 可选
+                          clusterGravity: 30,       // 可选
+                          maxIteration: 2000,       // 可选，迭代次数
+                          workerEnabled: true       // 可选，开启 web-worker  }
+                          });
+                      break;
+                  };
+                  case 'Concentric Layout':
+                      {					
+                          graph.updateLayout({
+                              type: 'concentric',
+                              center: [ 200, 200 ],     // 可选，
+                              linkDistance: 50,         // 可选，边长
+                              preventOverlap: true,     // 可选，必须配合 nodeSize
+                              nodeSize: 30,             // 可选
+                              sweep: 10,                // 可选
+                              equidistant: false,       // 可选
+                              startAngle: 0,            // 可选
+                              clockwise: false,         // 可选
+                              maxLevelDiff: 10,         // 可选
+                              //sortBy: 'degree'          // 可选
+                              workerEnabled: true       // 可选，开启 web-worker
+                              });
+                          break;
+                      };
+                  case 'MDS Layout':
+                      {					
+                          graph.updateLayout({
+                              type: 'mds',
+                              workerEnabled:true,
+                              });
+                          break;
+                      };
+                  case 'Dagre Layout':
+                      {					
+                          graph.updateLayout({
+                              type: 'dagre',
+                              rankdir: 'LR', // 可选，默认为图的中心
+                              align: 'DL', // 可选
+                              nodesep: 10, // 可选
+                              ranksep: 10, // 可选
+                              controlPoints: true, // 可选
+                              workerEnabled:true,
+                              });
+                          break;
+                      };		
+                  case 'Radial Layout':
+                      {					
+                          graph.updateLayout({
+                              type: 'radial',
+                              center: [ 200, 200 ],     // 可选，默认为图的中心
+                              linkDistance: 50,         // 可选，边长
+                              maxIteration: 1000,       // 可选
+                              focusNode: '11',      // 可选
+                              unitRadius: 100,          // 可选
+                              preventOverlap: true,     // 可选，必须配合 nodeSize
+                              nodeSize: 30,             // 可选
+                              strictRadial: false,      // 可选
+                              workerEnabled: true       // 可选，开启 web-worker
+                              });
+                          break;
+                      };	
+                  case 'Combo Force Layout':
+                      {					
+                          graph.updateLayout({
+                              type: 'comboForce',
+                              center: [ 600, 600 ],     // 可选，默认为图的中心
+                              linkDistance: 50,         // 可选，边长
+                              nodeStrength: 30,         // 可选
+                              edgeStrength: 0.1,        // 可选
+                              workerEnabled:true,
+                              onTick: () => {           // 可选
+                                  console.log('ticking');
+                              },
+                              onLayoutEnd: () => {      // 可选
+                                  console.log('combo force layout done');
+                              }
+                              });
+                          break;
+                      };
+                  
+          }
+      }
+  }
+
+
+
+})
+
+
+
+
+
+
+
+var caseCtrl=new Vue({
+  el: '#caseCtrl',
+  data: {
+      selected: 'Drug Dealer Case',
+      options: [
+        { text: 'Simple Case', value: 'Simple Case' },
+        { text: 'Read Books Combo  Case', value: 'Read Books Combo Case' },
+        { text: 'Net Science Case', value: 'Net Science Case' },
+        { text: 'Eva Case', value: 'Eva Case' },       
+        { text: 'Reduced Twitch Case', value: 'Reduced Twitch Case' },     
+        { text: 'Twitch Social Networks Case', value: 'Twitch Social Networks Case' },
+        { text: 'Bank Fraud Case', value: 'Bank Fraud Case' },
+        { text: 'Insurance Fraud Case', value: 'Insurance Fraud Case' },
+        { text: 'Drug Dealer Case', value: 'Drug Dealer Case' },
+
+           
+        ]
+      },
+
+  methods: {
+      changeData: function(){
+                  //拉取对应案例的数据并进行可视化
+                  visualizeDatafromFileUrl(this.selected);
+                  switch(this.selected){            
+                    case 'Simple Case':                       
+                          layoutCtrlVueObject.selected="Force Layout";	 
+                          break; 
+                      case 'Read Books Combo Case':
+                          layoutCtrlVueObject.selected="Combo Force Layout";	              
+                          break;
+                      case 'Net Science Case':
+                        layoutCtrlVueObject.selected="Force Layout";	
+                        break;      
+                      case 'Eva Case':              
+                          layoutCtrlVueObject.selected="Force Layout";                  
+                      break;            
+                      case 'Reduced Twitch Case':
+                          layoutCtrlVueObject.selected="Force Layout";	                  
+                          break;              
+                      case 'Twitch Social Networks Case':              
+                          layoutCtrlVueObject.selected="Force Layout";	                 
+                          break;      
+                      case 'Bank Fraud Case':              
+                          layoutCtrlVueObject.selected="Force Layout";	                 
+                          break;  
+                      case 'Insurance Fraud Case':              
+                          layoutCtrlVueObject.selected="Force Layout";	                 
+                          break;    
+                      case 'Drug Dealer Case':              
+                          layoutCtrlVueObject.selected="Force Layout";	                 
+                      break;                                                        
+                  }
+                  return this.selected;
+                  }
+          }
+  })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   const mapNodeSize = (nodes, propertyName, visualRange) => {
+  let minp = 9999999999;
+  let maxp = -9999999999;
+  nodes.forEach(node => {
+    node[propertyName] = Math.pow(node[propertyName], 1 / 3);
+    minp = node[propertyName] < minp ? node[propertyName] : minp;
+    maxp = node[propertyName] > maxp ? node[propertyName] : maxp;
+  });
+  const rangepLength = maxp - minp;
+  const rangevLength = visualRange[1] - visualRange[0];
+  nodes.forEach(node => {
+    node.size = ((node[propertyName] - minp) / rangepLength) * rangevLength + visualRange[0];
+  });
+};
+
+
+
+
+// 实例化 Minimap 插件
+const minimap = new G6.Minimap({
+                size: [ 100, 100 ],
+                className: "minimap",
+                type: 'delegate'
+});
+
+// 实例化 ToolBar 插件
+const toolbar = new G6.ToolBar();
+
+
+
+
+//const edgeBundling = new G6.Bundling({
+//bundleThreshold: 0.8,
+//K: 200
+//});
+
+const menu = new G6.Menu({
+  getContent(e) {
+    const outDiv = document.createElement('div');
+    outDiv.style.width = '180px';
+    outDiv.style.height = '20px';
+    outDiv.innerHTML = `
+    <ul>
+        <li>Delete node</li>
+        <li>Edit parameter</li>
+      </ul>
+      `
+    return outDiv
+  },
+  handleMenuClick(target, item) {
+    graph.deleteItem(target);
+  },
+});
+
+
+
+
+
+
+      const graphWidth = 1120;
+      const graphHeight=660;
+      const graph = new G6.Graph({
+        container: "graphContainer",
+        width: graphWidth,
+        height: graphHeight,
+
+
+        //fitView:true,
+        //fitViewPadding: 20,
+        //fitCenter:true,
+
+
+  //groupByTypes: false,
+
+
+
+animate: true, // Boolean，可选，全局变化时否使用动画过渡
+
+
+plugins: [toolbar,menu],    // 将 Minimap 和 Grid 插件的实例配置到图上
+
+
+
+
+
+
+ 
+  // 节点在默认状态下的样式配置（style）和其他配置
+defaultNode: {
+  size: 20, // 节点大小
+  // ...                 // 节点的其他配置
+  // 节点样式配置
+
+
+  style: {
+    fill: 'steelblue', // 节点填充色
+    stroke: '#666', // 节点描边色
+    lineWidth: 1, // 节点描边粗细
+  },
+  // 节点上的标签文本配置
+  labelCfg: {
+    // 节点上的标签文本样式配置
+    style: {
+      fill: '#purple', // 节点标签文字颜色
+      fontSize:10,
+    },
+  },
+},
+// 边在默认状态下的样式配置（style）和其他配置
+defaultEdge: {
+  // ...                 // 边的其他配置
+  // 边样式配置
+
+          size: 0.5,
+          color: '#333',
+          type: 'line',
+
+  //type: 'line',
+
+  // 边上的标签文本配置
+  labelCfg: {
+    autoRotate: true, // 边上的标签文本根据边的方向旋转
+  },
+},
+
+
+
+layout: {                // Object，可选，布局的方法及其配置项，默认为 random 布局。
+  type: 'force',         // 指定为力导向布局
+  preventOverlap: false,  // 防止节点重叠
+
+  linkDistance: 200, // 指定边距离为100
+  workerEnabled:true,
+
+
+  //type: 'comboForce',
+  //center: [ 400, 400 ],     // 可选，默认为图的中心
+  //linkDistance: 200,         // 可选，边长
+  //nodeStrength: 30,         // 可选
+  //edgeStrength: 0.2,        // 可选
+},
+
+modes: {
+  default: [
+    'drag-canvas', 
+    'activate-relations',
+    {
+      type:'zoom-canvas',
+      enableOptimize:true,
+      //minZoom:0.01,
+      //maxZoom:2,
+
+    } , 
+    'drag-node',
+    'drag-combo', 
+    'brush-select',
+    'collapse-expand-combo',
+    {
+      type: 'tooltip', // 提示框
+      formatText(model) {
+        // 提示框文本内容
+        const text = 'id: ' + model.id + '<br/> type: ' + model.label;
+        return text;
+      },
+    },
+
+    {
+      type: 'edge-tooltip', // 边提示框
+      formatText(model) {
+        // 边提示框文本内容
+        const text =
+          'source: ' +
+          model.source +
+          '<br/> target: ' +
+          model.target +
+          '<br/> relation: ' +
+          model.relation;
+        return text;
+      }
+    },
+    {
+      type: 'click-select',
+      trigger: 'ctrl',
+    },
+  ], // 允许拖拽画布、放缩画布、拖拽节点
+
+
+
+      // 增加节点交互模式
+      addNode: ['click-add-node', 'click-select'],
+    // 增加边交互模式
+      addEdge: ['click-add-edge', 'click-select'],
+
+},
+
+
+        // 节点不同状态下的样式集合
+        nodeStateStyles: {
+          // 鼠标 hover 上节点，即 hover 状态为 true 时的样式
+          hover: {
+            fill: 'red',
+          },
+          // 鼠标点击节点，即 click 状态为 true 时的样式
+          click: {
+            stroke: '#green',
+            lineWidth: 2,
+          },
+          active: {
+            opacity: 1,
+          },
+          inactive: {
+            opacity: 0.2,
+          },
+
+
+        },
+        // 边不同状态下的样式集合
+        edgeStateStyles: {
+          // 鼠标点击边，即 click 状态为 true 时的样式
+
+
+          hover: {
+            fill: 'yellow',
+          },
+
+          click: {
+            stroke: 'red',
+          },
+
+          active: {
+            
+            stroke: 'orange',
+            lineWidth:1
+          },
+
+        },
+  });
+
+
+
+
+
+
+  // 监听左上角下拉菜单的变化，根据其变化切换图的交互模式
+document.getElementById('selector').addEventListener('change', e => {
+  const value = e.target.value;
+  // 切换交互模式
+  graph.setMode(value);
+});
+
+
+
+
+// 添加的节点数量，用于生成唯一 id
+let addedNodeCount = 0;
+
+// 封装点击添加节点的交互
+G6.registerBehavior('click-add-node', {
+  // 设定该自定义行为需要监听的事件及其响应函数
+  getEvents() {
+    // 监听的事件为 canvas:click，响应函数是 onClick
+    return {
+      'canvas:click': 'onClick',
+    };
+  },
+  // 点击事件
+  onClick(ev) {
+    const graph = this.graph;
+    // 在图上新增一个节点
+    const node = this.graph.addItem('node', {
+      x: ev.canvasX,
+      y: ev.canvasY,
+      id: `node-${addedNodeCount}`, // 生成唯一的 id
+      size:10
+    });
+    addedNodeCount++;
+  },
+});
+
+
+
+
+// 封装点击添加边的交互
+G6.registerBehavior('click-add-edge', {
+  // 设定该自定义行为需要监听的事件及其响应函数
+  getEvents() {
+    return {
+      'node:click': 'onClick', // 监听事件 node:click，响应函数是 onClick
+      mousemove: 'onMousemove', // 监听事件 mousemove，响应函数是 onMousemove
+      'edge:click': 'onEdgeClick', // 监听事件 edge:click，响应函数是 onEdgeClick
+    };
+  },
+  // getEvents 中定义的 'node:click' 的响应函数
+  onClick(ev) {
+    const node = ev.item;
+    const graph = this.graph;
+    // 鼠标当前点击的节点的位置
+    const point = { x: ev.x, y: ev.y };
+    const model = node.getModel();
+    if (this.addingEdge && this.edge) {
+      graph.updateItem(this.edge, {
+        target: model.id,
+      });
+
+      this.edge = null;
+      this.addingEdge = false;
+    } else {
+      // 在图上新增一条边，结束点是鼠标当前点击的节点的位置
+      this.edge = graph.addItem('edge', {
+        source: model.id,
+        target: point,
+      });
+      this.addingEdge = true;
+    }
+  },
+  // getEvents 中定义的 mousemove 的响应函数
+  onMousemove(ev) {
+    // 鼠标的当前位置
+    const point = { x: ev.x, y: ev.y };
+    if (this.addingEdge && this.edge) {
+      // 更新边的结束点位置为当前鼠标位置
+      this.graph.updateItem(this.edge, {
+        target: point,
+      });
+    }
+  },
+  // getEvents 中定义的 'edge:click' 的响应函数
+  onEdgeClick(ev) {
+    const currentEdge = ev.item;
+    // 拖拽过程中，点击会点击到新增的边上
+    if (this.addingEdge && this.edge == currentEdge) {
+      graph.removeItem(this.edge);
+      this.edge = null;
+      this.addingEdge = false;
+    }
+  },
+});
+
+
+
+  // 鼠标进入节点
+  graph.on('node:mouseenter', e => {
+  const nodeItem = e.item; // 获取鼠标进入的节点元素对象
+  graph.setItemState(nodeItem, 'hover', true); // 设置当前节点的 hover 状态为 true
+  });
+  
+  // 鼠标离开节点
+  graph.on('node:mouseleave', e => {
+  const nodeItem = e.item; // 获取鼠标离开的节点元素对象
+  graph.setItemState(nodeItem, 'hover', false); // 设置当前节点的 hover 状态为 false
+  });
+  
+  // 点击节点
+  graph.on('node:click', e => {
+  // 先将所有当前是 click 状态的节点置为非 click 状态
+  const clickNodes = graph.findAllByState('node', 'click');
+  clickNodes.forEach(cn => {
+      graph.setItemState(cn, 'click', false);
+  });
+  const nodeItem = e.item; // 获取被点击的节点元素对象
+  graph.setItemState(nodeItem, 'click', true); // 设置当前节点的 click 状态为 true
+  });
+  
+  // 点击边
+  graph.on('edge:click', e => {
+  // 先将所有当前是 click 状态的边置为非 click 状态
+  const clickEdges = graph.findAllByState('edge', 'click');
+  clickEdges.forEach(ce => {
+      graph.setItemState(ce, 'click', false);
+  });
+  const edgeItem = e.item; // 获取被点击的边元素对象
+  graph.setItemState(edgeItem, 'click', true); // 设置当前边的 click 状态为 true
+  });
+
+
+
+
+
+
+
+  function getStatisticsInfo(){
+              
+
+              const graphData = graph.save();
+              const nodeLen = graphData.nodes.length;
+              const edgeLen = graphData.edges.length;
+          
+              const elementsShow = document.getElementById('elements');
+              elementsShow.innerHTML = `Types:undirected </br> Nodes：${nodeLen}</br> Edges：${edgeLen} </br>
+                                      All elements：${ nodeLen  + edgeLen }`; 
+          
+          }
+
+
+
+
+
+          let caseData={
+                nodes:[],
+                edges:[]
+              };
+              
+
+          var demoCaseName='Drug Dealer Case';
+          visualizeDatafromFileUrl(demoCaseName);
+
+         
+
+
+    //需要加入json数据校验
+
+
+
+
+
+    
+    function visualizeDatafromFileUrl(caseName){     
+      //清除画布元素。该方法一般用于清空数据源，重新设置数据源，重新 render 的场景，此时所有的图形都会被清除。
+        graph.clear();
+
+                        //卸载每个案例指定的插件，暂时定制，待通用化，此次代码有问题
+                        //if(timebar!==null){
+
+                         // graph.removePlugin(timebar);
+
+
+                       // }
+
+        
+        var remoteJsonFileUrl;
+        switch(caseName){
+          case 'Simple Case':
+            {
+              remoteJsonFileUrl='https://raw.githubusercontent.com/yzq1979/visualization/master/sna2.json';
+              fetch(
+                  remoteJsonFileUrl,
+                )
+              .then(res => res.json())
+              .then(data => {
+                  data.nodes.forEach(node => {
+                
+                  node.degree = 0;
+                  numOfNodes++;
+
+
+                  switch (node.class) {
+                  case 'c0': {
+                            node.shape = 'circle';
+                            node.size = 30;
+                            node.color = 'steelblue';
+                            node.label=node.id;
+                            node.labelCfg={
+                              style:{
+                                fill:'steelblue',
+                              }
+                            };
+                            break;
+                            }
+                  case 'c1': {
+                            node.shape = 'rect';
+                            node.size = [25, 15];
+                            node.color = 'green';
+                            node.label=node.id;
+                            node.labelCfg={
+                              style:{
+                                fill:'green',
+                              }
+                            };
+                            break;
+                            }
+                  case 'c2': {
+                            node.shape = 'ellipse';
+                            node.size = [25, 15];
+                            node.color = 'orange';
+                            node.label=node.id;
+                            node.labelCfg={
+                              style:{
+                                fill:'orange',
+                              }
+                            };
+                            break;
+                            }
+                  };
+         
+
+
+
+
+                  data.edges.forEach(edge => {
+                    numOfEdges++;
+                    if (edge.source === node.id || edge.target === node.id) {
+                      node.degree++;
+
+                      edge.size=0.2;
+                      edge.color= '#333';
+                      edge.type= 'line';
+                      }
+                    });
+                  });
+                mapNodeSize(data.nodes, 'degree', [1, 10]);
+
+                //alert(numOfNodes.toString());
+            
+
+               // const edgeBundling = new G6.Bundling({
+                //    bundleThreshold: 0.6,
+                 //   K: 500,
+                //  });
+
+              //    graph.addPlugin(edgeBundling);
+
+              //  edgeBundling.bundling(data);
+                graph.data(data);
+
+                graph.updateLayout({
+                     type: 'force',               // 布局名称
+                      preventOverlap: true,        // 布局参数，是否允许重叠
+                      linkDistance: 200,            // 布局参数，边长
+                      workerEnabled:true,
+                });
+
+
+
+                graph.render();
+
+
+                getStatisticsInfo();
+
+
+
+
+              });
+              break;
+          };
+          case 'Read Books Combo Case':
+          {
+            remoteJsonFileUrl='https://raw.githubusercontent.com/yzq1979/visualization/master/sna.json';
+          fetch(
+              remoteJsonFileUrl,
+            )
+              .then(res => res.json())
+              .then(data => {
+                data.nodes.forEach(node => {
+                  //node.label = node.olabel;
+                  //node.degree = 0;
+
+                  switch (node.class) {
+                  case 'person': {
+                    node.shape = 'circle';
+                    node.size = 40;
+                    
+                    
+
+                    node.style= {
+                        fill: '#9EC9FF',
+                        lineWidth: 3,
+                      };
+
+                    node.label=node.id;
+                    node.comboId='comboA';
+                    break;
+                  }
+                  case 'book': {
+                    node.shape = 'rect';
+                    node.size = [35, 20];
+                    
+                    node.style= {
+                        fill: 'green',
+                        lineWidth: 3,
+                      };
+
+
+                    
+                    node.label=node.id;
+                    node.comboId='comboB';
+                    break;
+                  }
+                  case 'place': {
+                    node.shape = 'ellipse';
+                    node.size = [35, 20];
+                    
+                    
+
+                    node.style= {
+                        fill: 'orange',
+                        lineWidth: 3,
+                      };
+
+                    node.label=node.id;
+                    node.comboId='comboC';
+                    break;
+                  };
+                };
+         
+
+
+
+
+         data.edges.forEach(edge => {
+           numOfEdges++;
+           edge.label=edge.relation;
+           if (edge.source === node.id || edge.target === node.id) {
+             //node.degree++;
+
+         
+             }
+           });
+         });
+      // mapNodeSize(data.nodes, 'degree', [1, 10]);
+
+       //alert(numOfNodes.toString());
+
+
+
+
+
+       graph.updateLayout({
+
+
+                          type: 'comboForce',
+                        center: [ 400, 400 ],     // 可选，默认为图的中心
+                        linkDistance: 200,         // 可选，边长
+                        nodeStrength: 30,         // 可选
+                        edgeStrength: 0.2,        // 可选
+                        preventOverlap:true,
+                        nodeSize:30,
+
+
+                          style: {
+                            fill: '#LightBlue',
+                            stroke: '#eaff8f',
+                            lineWidth: 5,
+                            // 其他属性
+                          },
+                          labelCfg: {
+                              position: 'top',
+                              offset: [10, 10, 10, 10],
+                              style: {
+                                fill: '#green',
+                              },
+                            },
+                     
+                      });
+   
+       //edgeBundling.bundling(jsonData);
+       graph.data(data);
+
+       graph.render();
+
+       getStatisticsInfo();
+
+     });
+     break;
+ };
+                  
+                  case 'Net Science Case':
+            {
+              remoteJsonFileUrl='https://gw.alipayobjects.com/os/basement_prod/da5a1b47-37d6-44d7-8d10-f3e046dabf82.json';
+              fetch(
+                  remoteJsonFileUrl,
+                )
+              .then(res => res.json())
+              .then(data => {
+                  data.nodes.forEach(node => {
+                
+                  node.degree = 0;
+                  numOfNodes++;
+
+
+         
+
+
+
+
+                  data.edges.forEach(edge => {
+                    numOfEdges++;
+                    if (edge.source === node.id || edge.target === node.id) {
+                      node.degree++;
+
+                      edge.size=0.5;
+                      edge.color= '#333';
+                      edge.type= 'line';
+                      }
+                    });
+                  });
+                mapNodeSize(data.nodes, 'degree', [1, 10]);
+
+                //alert(numOfNodes.toString());
+            
+                //edgeBundling.bundling(jsonData);
+
+
+                graph.data(data);
+
+                graph.updateLayout({
+                     type: 'force',               // 布局名称
+                      preventOverlap: true,        // 布局参数，是否允许重叠
+                      linkDistance: 100 ,           // 布局参数，边长
+                      workerEnabled:true,
+                });
+
+
+                graph.render();
+
+                getStatisticsInfo();
+
+              });
+              break;
+          };
+          case 'Eva Case':
+            {
+              remoteJsonFileUrl='https://gw.alipayobjects.com/os/basement_prod/0b9730ff-0850-46ff-84d0-1d4afecd43e6.json';
+              fetch(
+                  remoteJsonFileUrl,
+                )
+              .then(res => res.json())
+              .then(data => {
+                  data.nodes.forEach(node => {
+                
+                  node.degree = 0;
+                  numOfNodes++;
+
+                  node.label=node.olabel;
+                  
+                  node.style= {
+                        fill: '#90ee90',
+                        lineWidth: 3,
+                      };
+
+
+
+
+                  data.edges.forEach(edge => {
+                    numOfEdges++;
+                    if (edge.source === node.id || edge.target === node.id) {
+                      node.degree++;
+
+                      edge.size=0.5;
+                      edge.color= '#9370db';
+                      edge.type= 'line';
+                      }
+                    });
+                  });
+                mapNodeSize(data.nodes, 'degree', [1, 10]);
+
+                //alert(numOfNodes.toString());
+            
+                //edgeBundling.bundling(jsonData);
+
+
+
+
+
+                graph.data(data);
+
+                graph.updateLayout({
+                     type: 'force',               // 布局名称
+                      preventOverlap: true,        // 布局参数，是否允许重叠
+                      linkDistance: 30,            // 布局参数，边长
+                      workerEnabled:true,
+
+                });
+
+                graph.render();
+
+                getStatisticsInfo();
+
+              });
+              break;
+          };
+          case 'Reduced Twitch Case':
+            {
+              remoteJsonFileUrl='https://raw.githubusercontent.com/yzq1979/jsoneditor/develop/temp.json';
+              fetch(
+                  remoteJsonFileUrl,
+                )
+              .then(res => res.json())
+              .then(data => {
+                  data.nodes.forEach(node => {
+                
+                  node.degree = 0;
+                  numOfNodes++;
+
+
+
+
+                  data.edges.forEach(edge => {
+                    numOfEdges++;
+                    if (edge.source === node.id || edge.target === node.id) {
+                      node.degree++;
+
+                      edge.size=0.5;
+                      edge.color= '#333';
+                      edge.type= 'line';
+                      }
+                    });
+                  });
+                //mapNodeSize(data.nodes, 'degree', [1, 10]);
+
+                //alert(numOfNodes.toString());
+            
+                //edgeBundling.bundling(jsonData);
+                graph.data(data);
+
+                graph.updateLayout({
+                     type: 'force',               // 布局名称
+                      preventOverlap: true,        // 布局参数，是否允许重叠
+                      linkDistance: 100,            // 布局参数，边长
+                      workerEnabled:true,
+                });
+
+
+                graph.render();
+
+                getStatisticsInfo();
+
+              });
+              break;
+          };
+          case 'Twitch Social Networks Case':
+            {
+              remoteJsonFileUrl='https://raw.githubusercontent.com/yzq1979/visualization/master/new.json';
+              fetch(
+                  remoteJsonFileUrl,
+                )
+              .then(res => res.json())
+              .then(data => {
+                  data.nodes.forEach(node => {
+                
+                  node.degree = 0;
+                  numOfNodes++;
+
+                  node.shape = 'circle';
+                  node.size = 10;
+                  node.color = 'orange';
+                  node.label=node.id;
+                  //node.labelCfg={
+                   // style:{
+                  //    fill:'orange',
+                 //   }
+                 // };
+                  
+         
+
+
+
+
+                  data.edges.forEach(edge => {
+                    numOfEdges++; 
+                    edge.size=0.3;
+                      edge.color= 'green';
+                      edge.type= 'line';
+
+                   // if (edge.source === node.id || edge.target === node.id) {
+                   //   node.degree++;
+
+                     
+                    //  }
+                    });
+                  });
+                //mapNodeSize(data.nodes, 'degree', [1, 10]);
+
+                //alert(numOfNodes.toString());
+            
+                //edgeBundling.bundling(jsonData);
+                graph.data(data);
+
+                graph.updateLayout({
+                     type: 'force',               // 布局名称
+                      preventOverlap: true,        // 布局参数，是否允许重叠
+                      linkDistance: 100,            // 布局参数，边长
+                      workerEnabled:true,
+                });
+
+
+                graph.render();
+
+                getStatisticsInfo();
+
+              });
+              break;
+          };
+
+
+
+          case 'Bank Fraud Case':
+            {
+
+              remoteJsonFileUrl='https://raw.githubusercontent.com/yzq1979/visualization/master/bankFraud.json';
+              fetch(
+                  remoteJsonFileUrl,
+                )
+              .then(res => res.json())
+              .then(data => {
+                  data.nodes.forEach(node => {
+                
+                  node.degree = 0;
+                  
+                  numOfNodes++;
+
+                  const date = new Date(node.date);
+
+                  var y=date.getFullYear();
+                  var m=date.getMonth()+1;
+                  var d=date.getDate();
+
+                  var formattedDate=y.toString()+m.toString()+d.toString();
+                  node.date=formattedDate;
+                  
+
+                   
+                  
+
+                  switch (node.class) {
+                  case 'address': {
+                            node.type = 'image'; 
+                                                
+                            
+                            node.img='https://raw.githubusercontent.com/yWorks/yfiles-for-html-demos/master/demos/complete/frauddetection/resources/address.svg';
+                            node.label=node.info.address;                           
+                            break;
+                            }
+                  case 'Account Holder': {
+                            node.type = 'image';
+                            node.img='https://raw.githubusercontent.com/yWorks/yfiles-for-html-demos/master/demos/complete/frauddetection/resources/account-holder.svg';
+                            node.label=node.info.name;
+                            break;
+                            }
+                    case 'Bank branch': {
+                            node.type = 'image';
+                            node.img='https://raw.githubusercontent.com/yWorks/yfiles-for-html-demos/master/demos/complete/frauddetection/resources/bank.svg';
+                            node.label=node.info.branch;
+                            break;
+                            }
+                      case 'Loan': {
+                            node.type = 'image';
+                            node.img='https://raw.githubusercontent.com/yWorks/yfiles-for-html-demos/master/demos/complete/frauddetection/resources/loan.svg';
+                            node.label=node.info.amount;
+                            break;
+                            }
+                        case 'New Account': {
+                            node.type = 'image';
+                            node.img='https://raw.githubusercontent.com/yWorks/yfiles-for-html-demos/master/demos/complete/frauddetection/resources/new-account.svg';
+                            node.color='red';
+                            node.label=node.info.amount;
+                            break;
+
+                            }  
+                    case 'Payment': {
+                            node.type = 'image';
+                            node.img='https://raw.githubusercontent.com/yWorks/yfiles-for-html-demos/master/demos/complete/frauddetection/resources/payment.svg';
+                            node.label=node.info.amount;
+                            break;
+                            } 
+                      case 'Credit Card': {
+                            node.type = 'image';
+                            node.img='https://raw.githubusercontent.com/yWorks/yfiles-for-html-demos/master/demos/complete/frauddetection/resources/credit-card.svg';
+                            node.fill='green';
+                            node.label=node.info.amount;
+                            break;
+                            }                                                      
+                  case 'phone Number': {
+                            node.type = 'image';
+                            node.img='https://raw.githubusercontent.com/yWorks/yfiles-for-html-demos/master/demos/complete/frauddetection/resources/phone.svg';
+                            node.fill='red';
+                            node.label=node.info.phone;
+                            break;
+                            }
+                  };
+         
+
+
+                 // const { detectAllCycles } = Algorithm;
+                  // 检测无向图中所有基本环
+                //const allCycles = detectAllCycles(graph, false, false);
+
+
+                  data.edges.forEach(edge => {
+                    
+                    if (edge.source === node.id || edge.target === node.id) {
+                      node.degree++;
+
+                      edge.size=0.9;
+                      edge.color= '#333';
+                      edge.type= 'line';
+                      }
+
+
+
+
+
+
+                    });
+                  });
+                
+
+                //alert(numOfNodes.toString());
+            
+                //edgeBundling.bundling(jsonData);
+
+
+
+                const timeBarData = [];
+
+
+
+                for (let i = 1; i <= 12; i++) 
+                   {
+                  timeBarData.push({
+                    date: `2015${i}`,
+                    value: Math.round(Math.random() * 300),
+                  });
+                };
+
+             
+                for (let i = 1; i <= 12; i++) 
+                   {
+                  timeBarData.push({
+                    date: `2016${i}`,
+                    value: Math.round(Math.random() * 300),
+                  });
+                };
+
+
+                for (let i = 1; i <= 12; i++) 
+                   {
+                  timeBarData.push({
+                    date: `2017${i}`,
+                    value: Math.round(Math.random() * 300),
+                  });
+                };
+
+
+
+                const timebar = new G6.TimeBar({
+                  x:200,
+                  y:500,
+                  width: 1120,
+                  type: 'trend',
+                  timebar: {
+                    width: 1120,
+                    backgroundStyle: {
+                      fill: '#08979c',
+                      opacity: 0.3
+                    },
+                    foregroundStyle: {
+                      fill: '#40a9ff',
+                      opacity: 0.4
+                    },
+                    textStyle:{
+                      fontSize:20,
+                      
+                    },
+                    trend: {
+                      data: timeBarData,
+                      lineStyle: {
+                        stroke: '#9254de',
+                        lineWidth:2,
+                      },
+                      isArea: false,
+                      smooth: true,
+                    },
+                    start: 0.3,
+                    end: 0.5,
+                  },
+                });
+
+
+                graph.addPlugin(timebar);
+
+
+
+
+                graph.data(data);
+
+                graph.updateLayout({
+                     type: 'force',               // 布局名称
+                      preventOverlap: true,        // 布局参数，是否允许重叠
+                      linkDistance: 100,            // 布局参数，边长
+                      workerEnabled:true,
+                });
+
+
+
+                graph.render();
+
+
+                getStatisticsInfo();
+
+
+
+
+
+
+              });
+              break;
+          };
+
+
+
+          case 'Insurance Fraud Case':
+            {
+              remoteJsonFileUrl='https://raw.githubusercontent.com/yzq1979/visualization/master/insuranceFraud.json';
+              fetch(
+                  remoteJsonFileUrl,
+                )
+              .then(res => res.json())
+              .then(data => {
+                  data.nodes.forEach(node => {
+                
+                  node.degree = 0;
+                  numOfNodes++;
+
+
+                  switch (node.class) {
+                  case 'c0': {
+                            node.shape = 'circle';
+                            node.size = 30;
+                            node.color = 'steelblue';
+                            node.label=node.id;
+                            node.labelCfg={
+                              style:{
+                                fill:'steelblue',
+                              }
+                            };
+                            break;
+                            }
+                  case 'c1': {
+                            node.shape = 'rect';
+                            node.size = [25, 15];
+                            node.color = 'green';
+                            node.label=node.id;
+                            node.labelCfg={
+                              style:{
+                                fill:'green',
+                              }
+                            };
+                            break;
+                            }
+                  case 'c2': {
+                            node.shape = 'ellipse';
+                            node.size = [25, 15];
+                            node.color = 'orange';
+                            node.label=node.id;
+                            node.labelCfg={
+                              style:{
+                                fill:'orange',
+                              }
+                            };
+                            break;
+                            }
+                  };
+         
+
+
+
+
+                  data.edges.forEach(edge => {
+                    numOfEdges++;
+                    if (edge.source === node.id || edge.target === node.id) {
+                      node.degree++;
+
+                      edge.size=0.2;
+                      edge.color= '#333';
+                      edge.type= 'line';
+                      }
+                    });
+                  });
+                mapNodeSize(data.nodes, 'degree', [1, 30]);
+
+                //alert(numOfNodes.toString());
+            
+                //edgeBundling.bundling(jsonData);
+                graph.data(data);
+
+                graph.updateLayout({
+                     type: 'force',               // 布局名称
+                      preventOverlap: true,        // 布局参数，是否允许重叠
+                      linkDistance: 100,            // 布局参数，边长
+                      workerEnabled:true,
+                });
+
+
+
+                graph.render();
+
+
+                getStatisticsInfo();
+
+
+
+
+              });
+              break;
+          };
+
+
+          case 'Drug Dealer Case':
+            {
+
+
+               //读取users这个json文件
+              var usersJsonFileUrl='https://raw.githubusercontent.com/yzq1979/visualization/master/users.json';
+              async function fetchUsersData(usersJsonFileUrl){
+
+                       await fetch(
+                        usersJsonFileUrl,
+                        )
+                      .then(res => res.json())
+                      .then(data => {
+                          for(var key in data)
+                          {                 
+                        
+                            var nodeObj={
+                              "id":data[key].userId.toString(),
+                              "type" :'image',
+                              "img":  'https://raw.githubusercontent.com/yzq1979/visualization/master/drug_dealer.svg'              
+
+                            };
+                            caseData.nodes.push(nodeObj) ;  
+
+                             nodeObj={
+                              "id":data[key].userContact.toString(),
+                              "type" :'image',
+                              "img":  'https://raw.githubusercontent.com/yzq1979/visualization/master/cellphone.svg'   
+
+                          
+                            };
+                            caseData.nodes.push(nodeObj) ; 
+
+                            
+                            var edgeObj={
+                              "id":(data[key].userId+900000).toString(),
+                              "source":data[key].userId.toString(),
+                              "target":data[key].userContact.toString()
+                            }
+                            caseData.edges.push(edgeObj) ;          
+          
+                          };
+
+                        });
+
+                        return caseData;
+                      }
+
+
+
+     //读取sms这个json文件
+     var smsJsonFileUrl='https://raw.githubusercontent.com/yzq1979/visualization/master/sms.json';
+              async function fetchSMSData(smsJsonFileUrl){
+
+                       await fetch(
+                        smsJsonFileUrl,
+                        )
+                      .then(res => res.json())
+                      .then(data => {
+                          for(var key in data)
+                          {                 
+                        
+                            var nodeObj={
+                              "id":data[key].smsId.toString(),
+                              "type" :'image',
+                              "img":  'https://raw.githubusercontent.com/yzq1979/visualization/master/sms.svg' 
+
+        
+                            };
+                            caseData.nodes.push(nodeObj) ;  
+
+                             
+                            
+                            var edgeObj={
+                              "id":(10000+key).toString(),
+                              "source":data[key].smsId.toString(),
+                              "target":data[key].sender.toString()
+                            }
+                            caseData.edges.push(edgeObj) ;   
+                            
+                            
+                             edgeObj={
+                              "id":(20000+key).toString(),
+                              "source":data[key].smsId.toString(),
+                              "target":data[key].receiver.toString()
+                            }
+                            caseData.edges.push(edgeObj) ;   
+
+          
+                          };
+
+                        });
+
+                        return caseData;
+                      }
+
+
+
+   //读取tweets这个json文件
+   var tweetsJsonFileUrl='https://raw.githubusercontent.com/yzq1979/visualization/master/tweetsUpdated.json';
+              async function fetchTweetsJsonFileUrlData(tweetsJsonFileUrl){
+
+                       await fetch(
+                        tweetsJsonFileUrl,
+                        )
+                      .then(res => res.json())
+                      .then(data => {
+                          for(var key in data)
+                          {                 
+                        
+                            var nodeObj={
+                              "id":data[key].tweetId.toString(),
+                              "type" :'image',
+                              "img":  'https://raw.githubusercontent.com/yzq1979/visualization/master/Twitter_bird.svg' 
+
+                            };
+                            caseData.nodes.push(nodeObj) ;  
+
+                             
+                            //提示ID号码不唯一
+                            var edgeObj={
+                              "id":(500000+key).toString(),
+                              "source":data[key].tweetId.toString(),
+                              "target":data[key].userId.toString()
+                            }
+                            caseData.edges.push(edgeObj) ;   
+                            
+                     
+
+          
+                          };
+
+                        });
+
+                        return caseData;
+                      }
+
+
+
+                      (async function(){
+                          await fetchUsersData(usersJsonFileUrl);
+                          await fetchSMSData(smsJsonFileUrl);
+                          await fetchTweetsJsonFileUrlData(tweetsJsonFileUrl)
+
+
+
+
+
+
+
+                          graph.data(caseData);
+
+                        graph.updateLayout({
+                            type: 'force',               // 布局名称
+                              preventOverlap: false,        // 布局参数，是否允许重叠
+                              linkDistance: 200,            // 布局参数，边长
+                              workerEnabled:true,
+                        });
+
+
+
+
+  
+
+
+                        graph.render();
+
+
+
+                        const { detectDirectedCycle } = Algorithm
+
+                        // 此时图中没有环，result 为 null
+                        let result = detectDirectedCycle(graph)
+
+
+
+
+                        getStatisticsInfo();
+
+                          
+                        })()
+                                              
+                     
+                 
+             
+              break;
+          };
+
+
+
+
+
+        };
+
+       
+
+
+
+        };
+
+
+    
+
+ 
+       
+
+
+
+
+
+
+
+
+    </script>
+  </body>
+</html>
