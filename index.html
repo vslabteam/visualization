@@ -189,13 +189,187 @@
         }
       });
 
-      // 定义 visualizeDatafromFileUrl 函数
-      function visualizeDatafromFileUrl(caseName) {
-        // 实现数据的拉取和图形的渲染
+// 在 visualizeDatafromFileUrl 函数中，修改 'Bank Fraud Case' 和 'Insurance Fraud Case' 部分
 
-        // 当图形渲染完成后，更新统计信息
-        getStatisticsInfo();
-      }
+function visualizeDatafromFileUrl(caseName) {
+  graph.clear();
+
+  var remoteJsonFileUrl;
+  switch (caseName) {
+    case 'Bank Fraud Case': {
+      remoteJsonFileUrl = 'dataset/bankFraud.json'; // 修改为本地路径
+      fetch(remoteJsonFileUrl)
+        .then(res => res.json())
+        .then(data => {
+          numOfNodes = data.nodes.length;
+          numOfEdges = data.edges.length;
+
+          // 处理节点
+          data.nodes.forEach(node => {
+            const date = new Date(node.enter[0]);
+            var y = date.getFullYear();
+            var m = (date.getMonth() + 1).toString().padStart(2, '0');
+            var d = date.getDate().toString().padStart(2, '0');
+            var formattedDate = y.toString() + m + d;
+            node.date = formattedDate;
+
+            // 根据节点类别设置属性
+            switch (node.class) {
+              case 'address': {
+                node.type = 'image';
+                node.img = 'images/address.svg'; // 确保图片路径正确
+                node.label = node.info.address;
+                break;
+              }
+              case 'Account Holder': {
+                node.type = 'image';
+                node.img = 'images/account-holder.svg';
+                node.label = node.info.name;
+                break;
+              }
+              case 'Bank branch': {
+                node.type = 'image';
+                node.img = 'images/bank.svg';
+                node.label = node.info.branch;
+                break;
+              }
+              case 'Loan': {
+                node.type = 'image';
+                node.img = 'images/loan.svg';
+                node.label = node.info.amount;
+                break;
+              }
+              case 'New Account': {
+                node.type = 'image';
+                node.img = 'images/new-account.svg';
+                node.label = node.info.amount;
+                break;
+              }
+              case 'Payment': {
+                node.type = 'image';
+                node.img = 'images/payment.svg';
+                node.label = node.info.amount;
+                break;
+              }
+              case 'Credit Card': {
+                node.type = 'image';
+                node.img = 'images/credit-card.svg';
+                node.label = node.info.amount;
+                break;
+              }
+              case 'phone Number': {
+                node.type = 'image';
+                node.img = 'images/phone.svg';
+                node.label = node.info.phone;
+                break;
+              }
+              default: {
+                node.shape = 'circle';
+                node.size = 30;
+                node.color = 'steelblue';
+                node.label = node.id;
+                break;
+              }
+            }
+          });
+
+          // 处理边
+          data.edges.forEach(edge => {
+            edge.size = 0.9;
+            edge.color = '#333';
+            edge.type = 'line';
+          });
+
+          graph.data(data);
+
+          graph.updateLayout({
+            type: 'force',
+            preventOverlap: true,
+            linkDistance: 100,
+            workerEnabled: true,
+          });
+
+          graph.render();
+
+          getStatisticsInfo();
+        });
+      break;
+    }
+
+    case 'Insurance Fraud Case': {
+      remoteJsonFileUrl = 'dataset/insuranceFraud.json'; // 修改为本地路径
+      fetch(remoteJsonFileUrl)
+        .then(res => res.json())
+        .then(data => {
+          numOfNodes = data.nodes.length;
+          numOfEdges = data.edges.length;
+
+          // 处理节点
+          data.nodes.forEach(node => {
+            // 根据节点类别设置属性
+            switch (node.class) {
+              case 'Accident': {
+                node.type = 'image';
+                node.img = 'images/accident.svg';
+                node.label = node.info;
+                break;
+              }
+              case 'Car': {
+                node.type = 'image';
+                node.img = 'images/car.svg';
+                node.label = node.info;
+                break;
+              }
+              case 'Lawyer': {
+                node.type = 'image';
+                node.img = 'images/lawyer.svg';
+                node.label = node.info.name;
+                break;
+              }
+              case 'Participant': {
+                node.type = 'image';
+                node.img = 'images/participant.svg';
+                node.label = node.info.name;
+                break;
+              }
+              default: {
+                node.shape = 'circle';
+                node.size = 30;
+                node.color = 'steelblue';
+                node.label = node.id;
+                break;
+              }
+            }
+          });
+
+          // 处理边
+          data.edges.forEach(edge => {
+            edge.size = 0.2;
+            edge.color = '#333';
+            edge.type = 'line';
+          });
+
+          graph.data(data);
+
+          graph.updateLayout({
+            type: 'force',
+            preventOverlap: true,
+            linkDistance: 100,
+            workerEnabled: true,
+          });
+
+          graph.render();
+
+          getStatisticsInfo();
+        });
+      break;
+    }
+
+    // 其他案例保持不变
+    // ...
+  }
+}
+
 
       // 初始化图形
       const graphWidth = 1120;
