@@ -1,409 +1,380 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Graph Visualization</title>
-    <!-- 引入 Element UI 样式 -->
-    <link rel="stylesheet" href="https://unpkg.com/element-ui@2.15.14/lib/theme-chalk/index.css">
-    <!-- 引入 Vue.js 2.x -->
-    <script src="https://unpkg.com/vue@2.6.14/dist/vue.js"></script>
-    <!-- 引入 Element UI 脚本 -->
-    <script src="https://unpkg.com/element-ui@2.15.14/lib/index.js"></script>
-  </head>
+<head>
+  <meta charset="UTF-8" />
+  <title>Graph Visualization</title>
+  <!-- 引入 Element UI 样式 -->
+  <link rel="stylesheet" href="https://unpkg.com/element-ui@2.15.14/lib/theme-chalk/index.css">
+  <!-- 引入 Vue.js 2.x -->
+  <script src="https://unpkg.com/vue@2.6.14/dist/vue.js"></script>
+  <!-- 引入 Element UI 脚本 -->
+  <script src="https://unpkg.com/element-ui@2.15.14/lib/index.js"></script>
+</head>
 
-  <body>
+<body>
 
-    <!-- 使用 antv G6 的最新生产环境版本 -->
-    <script src="https://gw.alipayobjects.com/os/lib/antv/g6/5.0.21/dist/g6.min.js"></script>
+  <!-- 使用 antv G6 的最新生产环境版本 -->
+  <script src="https://gw.alipayobjects.com/os/lib/antv/g6/5.0.21/dist/g6.min.js"></script>
 
-    <!-- 使用 jspdf 来生成 pdf 文档 -->
-    <script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
+  <!-- 使用 jspdf 来生成 pdf 文档 -->
+  <script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
-    integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
-    crossorigin=""/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+  integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+  crossorigin=""/>
 
-     <!-- 确保在 Leaflet 的 CSS 之后引入 -->
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
-    integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
-    crossorigin=""></script>
+   <!-- 确保在 Leaflet 的 CSS 之后引入 -->
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+  integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+  crossorigin=""></script>
 
-    <style>
-      /* 提示框的样式 */
-      .g6-tooltip {
-      border: 1px solid #9fc92e;
-      border-radius: 4px;
-      font-size: 12px;
-      color: #8f1b1b;
-      background-color: rgba(255, 255, 255, 0.9);
-      padding: 10px 8px;
-      box-shadow: rgb(33, 165, 66) 0px 0px 10px;
-      }
-    </style>
+  <style>
+    /* 提示框的样式 */
+    .g6-tooltip {
+    border: 1px solid #9fc92e;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #8f1b1b;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 10px 8px;
+    box-shadow: rgb(33, 165, 66) 0px 0px 10px;
+    }
+  </style>
 
-    <div id="app">
-      <div id="main" style="width:1520px">
-        <div id="header" style="background-color:#FFA500;text-align:center;">
-          <h1 style="margin-bottom:0;">Forensic Visualization Tool</h1>
-        </div>
-
-        <aside id="ctrlPanel" style="background-color:steelblue;height:660px;width:200px;float:left;">
-          <b>Control Panel</b><br>  
-          <el-divider></el-divider>
-
-          <b>Layout</b><br>
-          <div id="layoutCtrl">
-
-            <select v-model="selectedLayout" @change='changeLayout'>
-              <option v-for="option in layoutOptions" :value="option.value">
-                {{ option.text }}
-              </option>
-            </select>
-            
-            <br>
-            
-            <span>Selected: {{selectedLayout}}</span><br><br><br>
-          </div>
-
-          <el-divider></el-divider>
-          <b>Demo Case</b><br>
-          <div id="caseCtrl">
-            <select v-model="selectedCase" @change='changeData'>
-              <option v-for="option in caseOptions" :value="option.value">
-                {{ option.text }}
-              </option>
-            </select>
-            <br>
-            <span>Selected: {{selectedCase}}</span><br><br><br>
-          </div>
-
-          <el-divider></el-divider>
-          <b>Behavior</b><br>
-          <select id="selector">
-            <option value="default">default</option>
-            <option value="addNode">addNode</option>
-            <option value="addEdge">addEdge</option>
-          </select>
-        </aside>
-
-        <div id="graphContainer" style="background-color:#EEEEEE;height:660px;width:1120px;float:left;">
-        </div>
-
-        <div id="displayInfo" style="background-color:steelblue;height:660px;width:200px;float:right;">
-
-          <el-divider></el-divider>
-
-          <b>Display Panel</b><br>
-          <b>Network</b><br>
-          
-          <div id="info">
-            <span :title="message">
-              {{ message }}
-            </span>
-          </div>
-
-          <div id="elements" v-html="elementsInfo">
-
-          </div>
-          <br><br>
-            
-            <el-divider></el-divider>
-            <b>Selection</b><br>
-            Nodes:<br>
-            Edges:<br><br><br>
-
-            <el-divider></el-divider>
-            <b>Clicked Item</b><br>
-            Number:<br>
-            Edges:<br><br><br>
-        </div>	
-        
-        <div id="footer" style="background-color:#FFA500;clear:both;text-align:center;"> Demo </div>
+  <div id="app">
+    <div id="main" style="width:1520px">
+      <div id="header" style="background-color:#FFA500;text-align:center;">
+        <h1 style="margin-bottom:0;">Forensic Visualization Tool</h1>
       </div>
+
+      <aside id="ctrlPanel" style="background-color:steelblue;height:660px;width:200px;float:left;">
+        <b>Control Panel</b><br>  
+        <el-divider></el-divider>
+
+        <b>Layout</b><br>
+        <div id="layoutCtrl">
+
+          <select v-model="selectedLayout" @change='changeLayout'>
+            <option v-for="option in layoutOptions" :value="option.value">
+              {{ option.text }}
+            </option>
+          </select>
+          
+          <br>
+          
+          <span>Selected: {{selectedLayout}}</span><br><br><br>
+        </div>
+
+        <el-divider></el-divider>
+        <b>Demo Case</b><br>
+        <div id="caseCtrl">
+          <select v-model="selectedCase" @change='changeData'>
+            <option v-for="option in caseOptions" :value="option.value">
+              {{ option.text }}
+            </option>
+          </select>
+          <br>
+          <span>Selected: {{selectedCase}}</span><br><br><br>
+        </div>
+
+        <el-divider></el-divider>
+        <b>Behavior</b><br>
+        <select id="selector">
+          <option value="default">default</option>
+          <option value="addNode">addNode</option>
+          <option value="addEdge">addEdge</option>
+        </select>
+      </aside>
+
+      <div id="graphContainer" style="background-color:#EEEEEE;height:660px;width:1120px;float:left;">
+      </div>
+
+      <div id="displayInfo" style="background-color:steelblue;height:660px;width:200px;float:right; overflow: auto;">
+
+        <el-divider></el-divider>
+
+        <b>Display Panel</b><br>
+        <b>Network</b><br>
+        
+        <div id="info">
+          <span :title="message">
+            {{ message }}
+          </span>
+        </div>
+
+        <div id="elements" v-html="elementsInfo">
+
+        </div>
+        <br><br>
+
+        <!-- 添加状态信息显示 -->
+        <el-alert v-if="statusMessage" :title="statusMessage" type="info" show-icon></el-alert>
+          
+          <el-divider></el-divider>
+          <b>Selection</b><br>
+          Nodes:<br>
+          Edges:<br><br><br>
+
+          <el-divider></el-divider>
+          <b>Clicked Item</b><br>
+          Number:<br>
+          Edges:<br><br><br>
+      </div>	
+      
+      <div id="footer" style="background-color:#FFA500;clear:both;text-align:center;"> Demo </div>
     </div>
+  </div>
 
-    <script>
-      Vue.use(ELEMENT);
+  <script>
+    Vue.use(ELEMENT);
 
-      var app = new Vue({
-        el: '#app',
-        data: {
-          message: "",
-          elementsInfo: "",
-          numOfNodes: 0,
-          numOfEdges: 0,
-          selectedLayout: 'Force Layout',
-          layoutOptions: [
-            { text: 'Force Layout', value: 'Force Layout' },
-            { text: 'Grid Layout', value: 'Grid Layout' },
-            { text: 'Circular Layout', value: 'Circular Layout' },
-            { text: 'Random Layout', value: 'Random Layout' },
-            { text: 'Fruchterman Layout', value: 'Fruchterman Layout' },
-            { text: 'Concentric Layout', value: 'Concentric Layout' },
-            { text: 'MDS Layout', value: 'MDS Layout' },
-            { text: 'Dagre Layout', value: 'Dagre Layout' },
-            { text: 'Radial Layout', value: 'Radial Layout' },
-            { text: 'Combo Force Layout', value: 'Combo Force Layout' }
-          ],
-          selectedCase: 'Drug Dealer Case',
-          caseOptions: [
-            { text: 'Simple Case', value: 'Simple Case' },
-            { text: 'Read Books Combo Case', value: 'Read Books Combo Case' },
-            { text: 'Net Science Case', value: 'Net Science Case' },
-            { text: 'Eva Case', value: 'Eva Case' },       
-            { text: 'Reduced Twitch Case', value: 'Reduced Twitch Case' },     
-            { text: 'Twitch Social Networks Case', value: 'Twitch Social Networks Case' },
-            { text: 'Bank Fraud Case', value: 'Bank Fraud Case' },
-            { text: 'Insurance Fraud Case', value: 'Insurance Fraud Case' },
-            { text: 'Drug Dealer Case', value: 'Drug Dealer Case' },
-          ]
+    var app = new Vue({
+      el: '#app',
+      data: {
+        message: "",
+        elementsInfo: "",
+        numOfNodes: 0,
+        numOfEdges: 0,
+        selectedLayout: 'Force Layout',
+        layoutOptions: [
+          { text: 'Force Layout', value: 'Force Layout' },
+          { text: 'Grid Layout', value: 'Grid Layout' },
+          { text: 'Circular Layout', value: 'Circular Layout' },
+          { text: 'Random Layout', value: 'Random Layout' },
+          { text: 'Fruchterman Layout', value: 'Fruchterman Layout' },
+          { text: 'Concentric Layout', value: 'Concentric Layout' },
+          { text: 'MDS Layout', value: 'MDS Layout' },
+          { text: 'Dagre Layout', value: 'Dagre Layout' },
+          { text: 'Radial Layout', value: 'Radial Layout' },
+          { text: 'Combo Force Layout', value: 'Combo Force Layout' }
+        ],
+        selectedCase: 'Bank Fraud Case', // 设置默认案例为 Bank Fraud Case
+        caseOptions: [
+          { text: 'Simple Case', value: 'Simple Case' },
+          { text: 'Read Books Combo Case', value: 'Read Books Combo Case' },
+          { text: 'Net Science Case', value: 'Net Science Case' },
+          { text: 'Eva Case', value: 'Eva Case' },       
+          { text: 'Reduced Twitch Case', value: 'Reduced Twitch Case' },     
+          { text: 'Twitch Social Networks Case', value: 'Twitch Social Networks Case' },
+          { text: 'Bank Fraud Case', value: 'Bank Fraud Case' },
+          { text: 'Insurance Fraud Case', value: 'Insurance Fraud Case' },
+          { text: 'Drug Dealer Case', value: 'Drug Dealer Case' },
+        ],
+        statusMessage: ''
+      },
+      methods: {
+        changeLayout: function(){
+            switch(this.selectedLayout){
+                case 'Force Layout':
+                {					
+                    graph.updateLayout({
+                        type: 'force',               // 布局名称
+                        preventOverlap: false,        // 布局参数，是否允许重叠
+                        linkDistance: 200,            // 布局参数，边长
+                        workerEnabled:true,
+                      });
+                    break;
+                };
+                // 省略其他布局的 case，以简洁为主
+                // ...
+            }
         },
-        methods: {
-          changeLayout: function(){
-              switch(this.selectedLayout){
-                  case 'Force Layout':
-                  {					
-                      graph.updateLayout({
-                          type: 'force',               // 布局名称
-                          preventOverlap: false,        // 布局参数，是否允许重叠
-                          linkDistance: 200,            // 布局参数，边长
-                          workerEnabled:true,
-                        });
-                      break;
-                  };
-                  // 省略其他布局的 case，以简洁为主
-                  // ...
-              }
-          },
-          changeData: function(){
-              // 拉取对应案例的数据并进行可视化
-              visualizeDatafromFileUrl(this.selectedCase);
-              switch(this.selectedCase){            
-                  case 'Simple Case':                       
-                      this.selectedLayout = "Force Layout";	 
-                      break; 
-                  // 省略其他案例的 case，以简洁为主
-                  // ...
-              }
-          }
+        changeData: function(){
+            // 拉取对应案例的数据并进行可视化
+            visualizeDatafromFileUrl(this.selectedCase);
+            switch(this.selectedCase){            
+                case 'Simple Case':                       
+                    this.selectedLayout = "Force Layout";	 
+                    break; 
+                // 省略其他案例的 case，以简洁为主
+                // ...
+            }
         }
-      });
-
-// 在 visualizeDatafromFileUrl 函数中，修改 'Bank Fraud Case' 和 'Insurance Fraud Case' 部分
-
-function visualizeDatafromFileUrl(caseName) {
-  graph.clear();
-
-  var remoteJsonFileUrl;
-  switch (caseName) {
-    case 'Bank Fraud Case': {
-      remoteJsonFileUrl = 'dataset/bankFraud.json'; // 修改为本地路径
-      fetch(remoteJsonFileUrl)
-        .then(res => res.json())
-        .then(data => {
-          numOfNodes = data.nodes.length;
-          numOfEdges = data.edges.length;
-
-          // 处理节点
-          data.nodes.forEach(node => {
-            const date = new Date(node.enter[0]);
-            var y = date.getFullYear();
-            var m = (date.getMonth() + 1).toString().padStart(2, '0');
-            var d = date.getDate().toString().padStart(2, '0');
-            var formattedDate = y.toString() + m + d;
-            node.date = formattedDate;
-
-            // 根据节点类别设置属性
-            switch (node.class) {
-              case 'address': {
-                node.type = 'image';
-                node.img = 'images/address.svg'; // 确保图片路径正确
-                node.label = node.info.address;
-                break;
-              }
-              case 'Account Holder': {
-                node.type = 'image';
-                node.img = 'images/account-holder.svg';
-                node.label = node.info.name;
-                break;
-              }
-              case 'Bank branch': {
-                node.type = 'image';
-                node.img = 'images/bank.svg';
-                node.label = node.info.branch;
-                break;
-              }
-              case 'Loan': {
-                node.type = 'image';
-                node.img = 'images/loan.svg';
-                node.label = node.info.amount;
-                break;
-              }
-              case 'New Account': {
-                node.type = 'image';
-                node.img = 'images/new-account.svg';
-                node.label = node.info.amount;
-                break;
-              }
-              case 'Payment': {
-                node.type = 'image';
-                node.img = 'images/payment.svg';
-                node.label = node.info.amount;
-                break;
-              }
-              case 'Credit Card': {
-                node.type = 'image';
-                node.img = 'images/credit-card.svg';
-                node.label = node.info.amount;
-                break;
-              }
-              case 'phone Number': {
-                node.type = 'image';
-                node.img = 'images/phone.svg';
-                node.label = node.info.phone;
-                break;
-              }
-              default: {
-                node.shape = 'circle';
-                node.size = 30;
-                node.color = 'steelblue';
-                node.label = node.id;
-                break;
-              }
-            }
-          });
-
-          // 处理边
-          data.edges.forEach(edge => {
-            edge.size = 0.9;
-            edge.color = '#333';
-            edge.type = 'line';
-          });
-
-          graph.data(data);
-
-          graph.updateLayout({
-            type: 'force',
-            preventOverlap: true,
-            linkDistance: 100,
-            workerEnabled: true,
-          });
-
-          graph.render();
-
-          getStatisticsInfo();
-        });
-      break;
-    }
-
-    case 'Insurance Fraud Case': {
-      remoteJsonFileUrl = 'dataset/insuranceFraud.json'; // 修改为本地路径
-      fetch(remoteJsonFileUrl)
-        .then(res => res.json())
-        .then(data => {
-          numOfNodes = data.nodes.length;
-          numOfEdges = data.edges.length;
-
-          // 处理节点
-          data.nodes.forEach(node => {
-            // 根据节点类别设置属性
-            switch (node.class) {
-              case 'Accident': {
-                node.type = 'image';
-                node.img = 'images/accident.svg';
-                node.label = node.info;
-                break;
-              }
-              case 'Car': {
-                node.type = 'image';
-                node.img = 'images/car.svg';
-                node.label = node.info;
-                break;
-              }
-              case 'Lawyer': {
-                node.type = 'image';
-                node.img = 'images/lawyer.svg';
-                node.label = node.info.name;
-                break;
-              }
-              case 'Participant': {
-                node.type = 'image';
-                node.img = 'images/participant.svg';
-                node.label = node.info.name;
-                break;
-              }
-              default: {
-                node.shape = 'circle';
-                node.size = 30;
-                node.color = 'steelblue';
-                node.label = node.id;
-                break;
-              }
-            }
-          });
-
-          // 处理边
-          data.edges.forEach(edge => {
-            edge.size = 0.2;
-            edge.color = '#333';
-            edge.type = 'line';
-          });
-
-          graph.data(data);
-
-          graph.updateLayout({
-            type: 'force',
-            preventOverlap: true,
-            linkDistance: 100,
-            workerEnabled: true,
-          });
-
-          graph.render();
-
-          getStatisticsInfo();
-        });
-      break;
-    }
-
-    // 其他案例保持不变
-    // ...
-  }
-}
-
-
-      // 初始化图形
-      const graphWidth = 1120;
-      const graphHeight = 660;
-      const graph = new G6.Graph({
-        container: "graphContainer",
-        width: graphWidth,
-        height: graphHeight,
-        // 其他图形配置
-      });
-
-      // 监听行为选择器的变化
-      document.getElementById('selector').addEventListener('change', e => {
-        const value = e.target.value;
-        graph.setMode(value);
-      });
-
-      // 定义 getStatisticsInfo 函数
-      function getStatisticsInfo(){
-        const graphData = graph.save();
-        const nodeLen = graphData.nodes.length;
-        const edgeLen = graphData.edges.length;
-
-        app.numOfNodes = nodeLen;
-        app.numOfEdges = edgeLen;
-        app.message = nodeLen.toString();
-
-        app.elementsInfo = `Types:undirected </br> Nodes：${nodeLen}</br> Edges：${edgeLen} </br>
-                            All elements：${ nodeLen  + edgeLen }`;
       }
+    });
 
-      // 初始加载默认案例
-      visualizeDatafromFileUrl(app.selectedCase);
+    // 定义 visualizeDatafromFileUrl 函数
+    function visualizeDatafromFileUrl(caseName) {
+      graph.clear();
 
-    </script>
-  </body>
+      var remoteJsonFileUrl;
+      switch (caseName) {
+        case 'Bank Fraud Case': {
+          remoteJsonFileUrl = 'dataset/bankFraud.json'; // 修改为本地路径
+          fetch(remoteJsonFileUrl)
+            .then(res => {
+              if (!res.ok) {
+                throw new Error('网络响应失败，状态码为 ' + res.statusText);
+              }
+              return res.json();
+            })
+            .then(data => {
+              try {
+                app.numOfNodes = data.nodes.length;
+                app.numOfEdges = data.edges.length;
+
+                // 处理节点
+                data.nodes.forEach(node => {
+                  // 格式化日期
+                  const date = new Date(node.enter[0]);
+                  var y = date.getFullYear();
+                  var m = (date.getMonth() + 1).toString().padStart(2, '0');
+                  var d = date.getDate().toString().padStart(2, '0');
+                  var formattedDate = y.toString() + m + d;
+                  node.date = formattedDate;
+
+                  // 根据节点类别设置属性
+                  switch (node.class) {
+                    case 'address': {
+                      node.type = 'image';
+                      node.style = {
+                        img: 'images/address.svg'
+                      };
+                      node.label = node.info.address;
+                      break;
+                    }
+                    case 'Account Holder': {
+                      node.type = 'image';
+                      node.style = {
+                        img: 'images/account-holder.svg'
+                      };
+                      node.label = node.info.name;
+                      break;
+                    }
+                    case 'Bank branch': {
+                      node.type = 'image';
+                      node.style = {
+                        img: 'images/bank.svg'
+                      };
+                      node.label = node.info.branch;
+                      break;
+                    }
+                    case 'Loan': {
+                      node.type = 'image';
+                      node.style = {
+                        img: 'images/loan.svg'
+                      };
+                      node.label = node.info.amount;
+                      break;
+                    }
+                    case 'New Account': {
+                      node.type = 'image';
+                      node.style = {
+                        img: 'images/new-account.svg'
+                      };
+                      node.label = node.info.amount;
+                      break;
+                    }
+                    case 'Payment': {
+                      node.type = 'image';
+                      node.style = {
+                        img: 'images/payment.svg'
+                      };
+                      node.label = node.info.amount;
+                      break;
+                    }
+                    case 'Credit Card': {
+                      node.type = 'image';
+                      node.style = {
+                        img: 'images/credit-card.svg'
+                      };
+                      node.label = node.info.amount;
+                      break;
+                    }
+                    case 'phone Number': {
+                      node.type = 'image';
+                      node.style = {
+                        img: 'images/phone.svg'
+                      };
+                      node.label = node.info.phone;
+                      break;
+                    }
+                    default: {
+                      node.shape = 'circle';
+                      node.size = 30;
+                      node.color = 'steelblue';
+                      node.label = node.id;
+                      break;
+                    }
+                  }
+                });
+
+                // 处理边
+                data.edges.forEach(edge => {
+                  edge.size = 0.9;
+                  edge.color = '#333';
+                  edge.type = 'line';
+                });
+
+                graph.data(data);
+
+                graph.updateLayout({
+                  type: 'force',
+                  preventOverlap: true,
+                  linkDistance: 100,
+                  workerEnabled: true,
+                });
+
+                graph.render();
+
+                getStatisticsInfo();
+
+                app.statusMessage = '数据集加载成功。';
+              } catch (error) {
+                console.error('处理数据时出错:', error);
+                app.statusMessage = '处理数据时出错：' + error.message;
+              }
+            })
+            .catch(error => {
+              console.error('加载数据集时出错:', error);
+              app.statusMessage = '加载数据集时出错：' + error.message;
+            });
+          break;
+        }
+
+        // 其他案例保持不变
+        // ...
+
+        default: {
+          app.statusMessage = '未找到对应的案例。';
+          break;
+        }
+      }
+    }
+
+    // 初始化图形
+    const graphWidth = 1120;
+    const graphHeight = 660;
+    const graph = new G6.Graph({
+      container: "graphContainer",
+      width: graphWidth,
+      height: graphHeight,
+      // 其他图形配置
+    });
+
+    // 监听行为选择器的变化
+    document.getElementById('selector').addEventListener('change', e => {
+      const value = e.target.value;
+      graph.setMode(value);
+    });
+
+    // 定义 getStatisticsInfo 函数
+    function getStatisticsInfo(){
+      const graphData = graph.save();
+      const nodeLen = graphData.nodes.length;
+      const edgeLen = graphData.edges.length;
+
+      app.numOfNodes = nodeLen;
+      app.numOfEdges = edgeLen;
+      app.message = nodeLen.toString();
+
+      app.elementsInfo = `Types:undirected </br> Nodes：${nodeLen}</br> Edges：${edgeLen} </br>
+                          All elements：${ nodeLen  + edgeLen }`;
+    }
+
+    // 初始加载默认案例
+    visualizeDatafromFileUrl(app.selectedCase);
+
+  </script>
+</body>
 </html>
