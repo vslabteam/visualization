@@ -5,8 +5,8 @@
     <title>Graph Visualization</title>
     <!-- 引入 Element UI 样式 -->
     <link rel="stylesheet" href="https://unpkg.com/element-ui@2.15.14/lib/theme-chalk/index.css">
-    <!-- 引入 Vue.js -->
-    <script src="https://unpkg.com/vue"></script>
+    <!-- 引入 Vue.js 2.x -->
+    <script src="https://unpkg.com/vue@2.6.14/dist/vue.js"></script>
     <!-- 引入 Element UI 脚本 -->
     <script src="https://unpkg.com/element-ui@2.15.14/lib/index.js"></script>
   </head>
@@ -41,14 +41,13 @@
       }
     </style>
 
-    <div id="main" style="width:1520px">
+    <div id="app">
+      <div id="main" style="width:1520px">
+        <div id="header" style="background-color:#FFA500;text-align:center;">
+          <h1 style="margin-bottom:0;">Forensic Visualization Tool</h1>
+        </div>
 
-      <div id="header" style="background-color:#FFA500;text-align:center;">
-        <h1 style="margin-bottom:0;">Forensic Visualization Tool</h1>
-      </div>
-
-      <aside id="ctrlPanel" style="background-color:steelblue;height:660px;width:200px;float:left;">
-        <div id="app">
+        <aside id="ctrlPanel" style="background-color:steelblue;height:660px;width:200px;float:left;">
           <b>Control Panel</b><br>  
           <el-divider></el-divider>
 
@@ -85,54 +84,54 @@
             <option value="addNode">addNode</option>
             <option value="addEdge">addEdge</option>
           </select>
-        </div>
-      </aside>
+        </aside>
 
-      <div id="graphContainer" style="background-color:#EEEEEE;height:660px;width:1120px;float:left;">
-      </div>
-
-      <div id="displayInfo" style="background-color:steelblue;height:660px;width:200px;float:right;">
-
-        <el-divider></el-divider>
-
-        <b>Display Panel</b><br>
-        <b>Network</b><br>
-        
-        <div id="info">
-          <span :title="message">
-            {{ message }}
-          </span>
+        <div id="graphContainer" style="background-color:#EEEEEE;height:660px;width:1120px;float:left;">
         </div>
 
-        <div id="elements">
+        <div id="displayInfo" style="background-color:steelblue;height:660px;width:200px;float:right;">
 
-        </div>
-        <br><br>
+          <el-divider></el-divider>
+
+          <b>Display Panel</b><br>
+          <b>Network</b><br>
           
-          <el-divider></el-divider>
-          <b>Selection</b><br>
-          Nodes:<br>
-          Edges:<br><br><br>
+          <div id="info">
+            <span :title="message">
+              {{ message }}
+            </span>
+          </div>
 
-          <el-divider></el-divider>
-          <b>Clicked Item</b><br>
-          Number:<br>
-          Edges:<br><br><br>
-      </div>	
-      
-      <div id="footer" style="background-color:#FFA500;clear:both;text-align:center;"> Demo </div>
+          <div id="elements" v-html="elementsInfo">
+
+          </div>
+          <br><br>
+            
+            <el-divider></el-divider>
+            <b>Selection</b><br>
+            Nodes:<br>
+            Edges:<br><br><br>
+
+            <el-divider></el-divider>
+            <b>Clicked Item</b><br>
+            Number:<br>
+            Edges:<br><br><br>
+        </div>	
+        
+        <div id="footer" style="background-color:#FFA500;clear:both;text-align:center;"> Demo </div>
+      </div>
     </div>
 
     <script>
       Vue.use(ELEMENT);
 
-      var numOfNodes = 99;
-      var numOfEdges = 99;
-
       var app = new Vue({
         el: '#app',
         data: {
-          message: numOfNodes.toString(),
+          message: "",
+          elementsInfo: "",
+          numOfNodes: 0,
+          numOfEdges: 0,
           selectedLayout: 'Force Layout',
           layoutOptions: [
             { text: 'Force Layout', value: 'Force Layout' },
@@ -190,14 +189,15 @@
         }
       });
 
-      // 其他脚本代码保持不变，包括图形初始化和数据加载等
-
-      // 示例：定义 visualizeDatafromFileUrl 函数
+      // 定义 visualizeDatafromFileUrl 函数
       function visualizeDatafromFileUrl(caseName) {
         // 实现数据的拉取和图形的渲染
+
+        // 当图形渲染完成后，更新统计信息
+        getStatisticsInfo();
       }
 
-      // 示例：初始化图形
+      // 初始化图形
       const graphWidth = 1120;
       const graphHeight = 660;
       const graph = new G6.Graph({
@@ -212,6 +212,20 @@
         const value = e.target.value;
         graph.setMode(value);
       });
+
+      // 定义 getStatisticsInfo 函数
+      function getStatisticsInfo(){
+        const graphData = graph.save();
+        const nodeLen = graphData.nodes.length;
+        const edgeLen = graphData.edges.length;
+
+        app.numOfNodes = nodeLen;
+        app.numOfEdges = edgeLen;
+        app.message = nodeLen.toString();
+
+        app.elementsInfo = `Types:undirected </br> Nodes：${nodeLen}</br> Edges：${edgeLen} </br>
+                            All elements：${ nodeLen  + edgeLen }`;
+      }
 
       // 初始加载默认案例
       visualizeDatafromFileUrl(app.selectedCase);
