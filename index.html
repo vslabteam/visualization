@@ -136,6 +136,25 @@
       width: graphWidth,
       height: graphHeight,
       // 其他图形配置
+      // 添加默认节点和边的样式
+      defaultNode: {
+        size: 30,
+        style: {
+          lineWidth: 2,
+          stroke: '#666',
+        },
+        labelCfg: {
+          style: {
+            fill: '#000',
+            fontSize: 12,
+          },
+        },
+      },
+      defaultEdge: {
+        style: {
+          stroke: '#b5b5b5',
+        },
+      },
     });
 
     var app = new Vue({
@@ -148,27 +167,15 @@
         selectedLayout: 'Force Layout',
         layoutOptions: [
           { text: 'Force Layout', value: 'Force Layout' },
-          { text: 'Grid Layout', value: 'Grid Layout' },
-          { text: 'Circular Layout', value: 'Circular Layout' },
-          { text: 'Random Layout', value: 'Random Layout' },
-          { text: 'Fruchterman Layout', value: 'Fruchterman Layout' },
-          { text: 'Concentric Layout', value: 'Concentric Layout' },
-          { text: 'MDS Layout', value: 'MDS Layout' },
-          { text: 'Dagre Layout', value: 'Dagre Layout' },
-          { text: 'Radial Layout', value: 'Radial Layout' },
-          { text: 'Combo Force Layout', value: 'Combo Force Layout' }
+          // 其他布局选项
         ],
         selectedCase: 'Bank Fraud Case', // 设置默认案例为 Bank Fraud Case
         caseOptions: [
           { text: 'Simple Case', value: 'Simple Case' },
-          { text: 'Read Books Combo Case', value: 'Read Books Combo Case' },
-          { text: 'Net Science Case', value: 'Net Science Case' },
-          { text: 'Eva Case', value: 'Eva Case' },       
-          { text: 'Reduced Twitch Case', value: 'Reduced Twitch Case' },     
-          { text: 'Twitch Social Networks Case', value: 'Twitch Social Networks Case' },
+          // 其他案例选项
           { text: 'Bank Fraud Case', value: 'Bank Fraud Case' },
           { text: 'Insurance Fraud Case', value: 'Insurance Fraud Case' },
-          { text: 'Drug Dealer Case', value: 'Drug Dealer Case' },
+          // ...
         ],
         statusMessage: ''
       },
@@ -240,7 +247,9 @@
                     case 'address': {
                       node.type = 'image';
                       node.style = {
-                        img: 'images/address.svg'
+                        img: 'images/address.svg',
+                        width: 40,
+                        height: 40,
                       };
                       node.label = node.info.address;
                       break;
@@ -248,7 +257,9 @@
                     case 'Account Holder': {
                       node.type = 'image';
                       node.style = {
-                        img: 'images/account-holder.svg'
+                        img: 'images/account-holder.svg',
+                        width: 40,
+                        height: 40,
                       };
                       node.label = node.info.name;
                       break;
@@ -256,7 +267,9 @@
                     case 'Bank branch': {
                       node.type = 'image';
                       node.style = {
-                        img: 'images/bank.svg'
+                        img: 'images/bank.svg',
+                        width: 40,
+                        height: 40,
                       };
                       node.label = node.info.branch;
                       break;
@@ -264,7 +277,9 @@
                     case 'Loan': {
                       node.type = 'image';
                       node.style = {
-                        img: 'images/loan.svg'
+                        img: 'images/loan.svg',
+                        width: 40,
+                        height: 40,
                       };
                       node.label = node.info.amount;
                       break;
@@ -272,7 +287,9 @@
                     case 'New Account': {
                       node.type = 'image';
                       node.style = {
-                        img: 'images/new-account.svg'
+                        img: 'images/new-account.svg',
+                        width: 40,
+                        height: 40,
                       };
                       node.label = node.info.amount;
                       break;
@@ -280,7 +297,9 @@
                     case 'Payment': {
                       node.type = 'image';
                       node.style = {
-                        img: 'images/payment.svg'
+                        img: 'images/payment.svg',
+                        width: 40,
+                        height: 40,
                       };
                       node.label = node.info.amount;
                       break;
@@ -288,7 +307,9 @@
                     case 'Credit Card': {
                       node.type = 'image';
                       node.style = {
-                        img: 'images/credit-card.svg'
+                        img: 'images/credit-card.svg',
+                        width: 40,
+                        height: 40,
                       };
                       node.label = node.info.amount;
                       break;
@@ -296,7 +317,9 @@
                     case 'phone Number': {
                       node.type = 'image';
                       node.style = {
-                        img: 'images/phone.svg'
+                        img: 'images/phone.svg',
+                        width: 40,
+                        height: 40,
                       };
                       node.label = node.info.phone;
                       break;
@@ -320,8 +343,10 @@
 
                 console.log('处理后的数据：', data);
 
-                graph.data(data);
+                // 使用 graph.changeData(data); 更新图的数据
+                graph.changeData(data);
 
+                // 更新布局
                 graph.updateLayout({
                   type: 'force',
                   preventOverlap: true,
@@ -329,6 +354,7 @@
                   workerEnabled: true,
                 });
 
+                // 渲染图
                 graph.render();
 
                 getStatisticsInfo();
