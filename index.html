@@ -54,7 +54,8 @@
         <b>Layout</b><br>
         <div id="layoutCtrl">
 
-          <select v-model="selectedLayout" @change='changeLayout'>
+          <!-- 为 select 元素添加 name 属性 -->
+          <select v-model="selectedLayout" @change='changeLayout' name="layoutSelect">
             <option v-for="option in layoutOptions" :value="option.value">
               {{ option.text }}
             </option>
@@ -68,7 +69,8 @@
         <el-divider></el-divider>
         <b>Demo Case</b><br>
         <div id="caseCtrl">
-          <select v-model="selectedCase" @change='changeData'>
+          <!-- 为 select 元素添加 name 属性 -->
+          <select v-model="selectedCase" @change='changeData' name="caseSelect">
             <option v-for="option in caseOptions" :value="option.value">
               {{ option.text }}
             </option>
@@ -79,7 +81,7 @@
 
         <el-divider></el-divider>
         <b>Behavior</b><br>
-        <select id="selector">
+        <select id="selector" name="behaviorSelect">
           <option value="default">default</option>
           <option value="addNode">addNode</option>
           <option value="addEdge">addEdge</option>
@@ -343,8 +345,9 @@
 
                 console.log('处理后的数据：', data);
 
-                // 使用 graph.changeData(data); 更新图的数据
-                graph.changeData(data);
+                // 使用 graph.data(data); graph.render(); 更新图的数据
+                graph.data(data);
+                graph.render();
 
                 // 更新布局
                 graph.updateLayout({
@@ -353,9 +356,6 @@
                   linkDistance: 100,
                   workerEnabled: true,
                 });
-
-                // 渲染图
-                graph.render();
 
                 getStatisticsInfo();
 
