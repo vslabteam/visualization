@@ -10,35 +10,42 @@ body {
     width: 100vw;
     position: fixed;
     overflow: hidden;
+    background: #fff;
 }
 
 .left-panel {
     width: 300px;
+    min-width: 300px;
     background: #f0f2f5;
     padding: 20px;
     border-right: 1px solid #e8e8e8;
     overflow-y: auto;
     height: 100vh;
+    flex-shrink: 0;
 }
 
 .center-panel {
     flex: 1;
     position: relative;
     height: 100vh;
+    overflow: hidden;
 }
 
 .right-panel {
     width: 300px;
+    min-width: 300px;
     background: #f0f2f5;
     padding: 20px;
     border-left: 1px solid #e8e8e8;
     overflow-y: auto;
     height: 100vh;
+    flex-shrink: 0;
 }
 
 #container {
     width: 100%;
     height: 100%;
+    background: #fff;
 }
 
 .panel-title {
@@ -55,6 +62,7 @@ body {
 .info-label {
     font-weight: bold;
     margin-bottom: 5px;
+    color: #333;
 }
 
 .control-item {
@@ -70,8 +78,63 @@ body {
     cursor: pointer;
     width: 100%;
     margin-bottom: 10px;
+    transition: background 0.3s;
 }
 
 .control-button:hover {
     background: #40a9ff;
+}
+
+.stats-container {
+    background: white;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.algorithm-results {
+    background: white;
+    border-radius: 4px;
+    margin-top: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.result-container {
+    padding: 15px;
+}
+
+.result-content {
+    padding: 10px;
+    background: #f8f8f8;
+    border-radius: 4px;
+    margin-top: 5px;
+}
+
+select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    background: white;
+    margin-bottom: 10px;
+}
+
+input[type="range"] {
+    width: 100%;
+    margin: 10px 0;
+}
+
+@media screen and (max-width: 1200px) {
+    .left-panel, .right-panel {
+        width: 250px;
+        min-width: 250px;
+    }
+}
+
+@media screen and (max-width: 900px) {
+    .left-panel, .right-panel {
+        width: 200px;
+        min-width: 200px;
+    }
 } 
