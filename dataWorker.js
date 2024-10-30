@@ -62,10 +62,16 @@ class DataWorker {
     }
 }
 
+// 移除多余的 'graph' 声明
+// let graph = new Graph(); // 如果 'graph' 已经声明，请删除这行
+
+// 使用已声明的 'graph' 变量
+graph = new Graph();
+
 if (typeof window !== 'undefined') {
     window.DataWorker = DataWorker;
 }
 
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = DataWorker;
-} 
+}
