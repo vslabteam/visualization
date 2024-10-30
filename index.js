@@ -243,4 +243,182 @@ document.addEventListener('DOMContentLoaded', function() {
       graph.changeSize(container.offsetWidth, container.offsetHeight);
     }
   });
+
+  // 在现有代码中添加以下算法相关函数
+
+  // 图算法实现
+  const GraphAlgorithms = {
+    // 中心度分析 - 使用G6内置的度中心性算法
+    calculateCentrality(graph) {
+      const nodes = graph.getNodes();
+      const edges = graph.getEdges();
+      
+      // 使用G6内置的度中心性算法
+      const degreeCentrality = G6.Algorithm.degreeCentrality(graph);
+      
+      // 将结果转换为数组并排序
+      const sortedNodes = Object.entries(degreeCentrality)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 5);
+
+      // 更新UI
+      const top5List = document.getElementById('centralityTop5');
+      top5List.innerHTML = '';
+      sortedNodes.forEach(([nodeId, score]) => {
+        const node = graph.findById(nodeId);
+        const nodeInfo = node.getModel();
+        const li = document.createElement('li');
+        li.textContent = `${nodeInfo.label || nodeId}: ${score.toFixed(2)}`;
+        li.className = 'highlight-node';
+        top5List.appendChild(li);
+
+        // 高亮重要节点
+        graph.setItemState(node, 'highlight', true);
+      });
+
+      return sortedNodes;
+    },
+
+    // 社区检测 - 使用G6内置的Louvain算法
+    detectCommunities(graph) {
+      // 使用G6内置的Louvain社区检测算法
+      const communities = G6.Algorithm.louvain(graph);
+      
+      // 统计社区信息
+      const communityGroups = new Map();
+      let maxSize = 0;
+
+      communities.clusters.forEach((community, nodeId) => {
+        if (!communityGroups.has(community)) {
+          communityGroups.set(community, []);
+        }
+        communityGroups.get(community).push(nodeId);
+        maxSize = Math.max(maxSize, communityGroups.get(community).length);
+      });
+
+      // 更新UI
+      document.getElementById('communityCount').textContent = communityGroups.size;
+      document.getElementById('maxCommunitySize').textContent = maxSize;
+
+      // 为不同社区的节点设置不同颜色
+      communityGroups.forEach((members, communityId) => {
+        const color = `hsl(${(communityId * 360) / communityGroups.size}, 70%, 70%)`;
+        members.forEach(nodeId => {
+          const node = graph.findById(nodeId);
+          if (node) {
+            graph.updateItem(node, {
+              style: {
+                fill: color
+              }
+            });
+          }
+        });
+      });
+
+      return {
+        communities: Array.from(communityGroups.values()),
+        count: communityGroups.size,
+        maxSize
+      };
+    },
+
+    // 路径分析 - 使用G6内置的最短路径算法
+    analyzePaths(graph) {
+      const nodes = graph.getNodes();
+      let totalLength = 0;
+      let pathCount = 0;
+      let maxLength = 0;
+
+      // 使用G6内置的SPFA最短路径算法
+      const shortestPathFinder = G6.Algorithm.SPFA;
+
+      // 计算所有节点对之间的最短路径
+      nodes.forEach((source, i) => {
+        const sourceId = source.getModel().id;
+        const paths = shortestPathFinder(graph, sourceId);
+        
+        nodes.forEach((target, j) => {
+          if (i < j) {  // 只计算一次
+            const targetId = target.getModel().id;
+            const distance = paths[targetId]?.distance;
+            
+            if (distance && distance !== Infinity) {
+              totalLength += distance;
+              pathCount++;
+              maxLength = Math.max(maxLength, distance);
+
+              // 如果是最长路径，高亮显示
+              if (distance === maxLength) {
+                const path = paths[targetId].path;
+                for (let k = 0; k < path.length - 1; k++) {
+                  const edge = graph.findEdge(path[k], path[k + 1]);
+                  if (edge) {
+                    graph.setItemState(edge, 'highlight', true);
+                  }
+                }
+              }
+            }
+          }
+        });
+      });
+
+      const avgLength = pathCount > 0 ? totalLength / pathCount : 0;
+
+      // 更新UI
+      document.getElementById('avgPathLength').textContent = avgLength.toFixed(2);
+      document.getElementById('maxPathLength').textContent = maxLength;
+
+      return {
+        avgLength,
+        maxLength
+      };
+    }
+  };
+
+  // 运行算法的函数
+  function runAlgorithm() {
+    const algorithmType = document.getElementById('algorithmSelect').value;
+    const button = document.querySelector('.control-button[onclick="runAlgorithm()"]');
+    button.disabled = true;
+    button.textContent = '计算中...';
+
+    try {
+      // 清除之前的高亮
+      graph.getNodes().forEach(node => {
+        graph.clearItemStates(node);
+        graph.updateItem(node, {
+          style: {
+            fill: getNodeColor(node.getModel().type)
+          }
+        });
+      });
+      graph.getEdges().forEach(edge => {
+        graph.clearItemStates(edge);
+      });
+
+      switch (algorithmType) {
+        case 'centrality':
+          GraphAlgorithms.calculateCentrality(graph);
+          break;
+        case 'community':
+          GraphAlgorithms.detectCommunities(graph);
+          break;
+        case 'shortestPath':
+          GraphAlgorithms.analyzePaths(graph);
+          break;
+        case 'cycle':
+          alert('环路检测功能正在开发中');
+          break;
+      }
+    } catch (error) {
+      console.error('算法运行错误:', error);
+      alert('算法运行出错，请查看控制台了解详情');
+    } finally {
+      button.disabled = false;
+      button.textContent = '运行算法';
+    }
+  }
+
+  // 将runAlgorithm函数绑定到window对象
+  window.runAlgorithm = runAlgorithm;
 }); 
