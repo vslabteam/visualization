@@ -133,4 +133,30 @@ document.addEventListener('DOMContentLoaded', function() {
   };
 
   processAndRenderData(testData);
+
+  // 创建示例数据
+  const sampleData = {
+    nodes: [
+      { id: '1', label: '账户1', type: 'account' },
+      { id: '2', label: '账户2', type: 'account' },
+      { id: '3', label: '交易1', type: 'transaction' },
+      { id: '4', label: '商户1', type: 'merchant' }
+    ],
+    edges: [
+      { source: '1', target: '3' },
+      { source: '3', target: '2' },
+      { source: '2', target: '4' }
+    ]
+  };
+
+  // 初始化图实例
+  const graph = window.graph;
+
+  // 如果没有成功加载数据文件，使用示例数据
+  if (!graph.get('data')) {
+    const dataWorker = new DataWorker(sampleData);
+    const processedData = dataWorker.processData();
+    graph.data(processedData);
+    graph.render();
+  }
 }); 

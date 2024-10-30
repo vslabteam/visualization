@@ -254,12 +254,12 @@
                    onchange="updateNodeSize(this.value)" style="width: 100%;">
         </div>
         <div class="control-item">
-            <div class="info-label">线粗细</div>
+            <div class="info-label">线粗��</div>
             <input type="range" min="1" max="10" value="2" 
                    onchange="updateEdgeWidth(this.value)" style="width: 100%;">
         </div>
         <div class="control-item">
-            <div class="info-label">动画效���</div>
+            <div class="info-label">动画效</div>
             <button class="control-button" onclick="toggleEdgeAnimation()">边动画效果</button>
             <button class="control-button" onclick="toggleNodeAnimation()">节点呼吸效果</button>
         </div>
@@ -762,43 +762,28 @@
         }
 
         // 初始化和加载数据
-        const graph = initGraph(); // Ensure 'graph' is declared only once
+        const graph = initGraph();
         if (graph) {
-            fetch('dataset/bankFraud.json')
-                .then(async res => {
-                    if (!res.ok) {
-                        throw new Error(`HTTP error! status: ${res.status}`);
-                    }
-                    try {
-                        const rawData = await res.json();
-                        console.log('原始数据:', rawData);
-                        const dataWorker = new DataWorker(rawData);
-                        const processedData = dataWorker.processData();
-                        console.log('处理后的数据:', processedData);
-                        
-                        graph.data(processedData);
-                        graph.render();
-                        updateStats(processedData);
-                        
-                        // 添加窗口大小变化监听
-                        window.addEventListener('resize', () => {
-                            if (graph && typeof graph.changeSize === 'function') {
-                                const container = document.querySelector('.center-panel');
-                                if (container) {
-                                    graph.changeSize(container.offsetWidth, container.offsetHeight);
-                                    graph.fitView();
-                                }
-                            }
-                        });
-                    } catch (e) {
-                        console.error('数据处理错误:', e);
-                        throw e;
-                    }
-                })
-                .catch(err => {
-                    console.error('加载数据失败:', err);
-                    alert('数据加载失败，请检查数据文件格式是否正确');
-                });
+            // 首先尝试加载示例数据
+            const sampleData = {
+                nodes: [
+                    { id: '1', label: '账户1', type: 'account' },
+                    { id: '2', label: '账户2', type: 'account' },
+                    { id: '3', label: '交易1', type: 'transaction' },
+                    { id: '4', label: '商户1', type: 'merchant' }
+                ],
+                edges: [
+                    { source: '1', target: '3' },
+                    { source: '3', target: '2' },
+                    { source: '2', target: '4' }
+                ]
+            };
+
+            const dataWorker = new DataWorker(sampleData);
+            const processedData = dataWorker.processData();
+            graph.data(processedData);
+            graph.render();
+            updateStats(processedData);
         }
 
         // 响应式调整
@@ -999,7 +984,7 @@
                 }
             } catch (error) {
                 console.error('算法运行错误:', error);
-                alert('算法运行出错，请查看控制台了解详情');
+                alert('算法运行出错，请查看控制台���解详情');
             } finally {
                 button.disabled = false;
                 button.textContent = '运行算法';
