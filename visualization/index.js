@@ -7,6 +7,24 @@ document.addEventListener('DOMContentLoaded', function() {
   
   console.log('G6 version:', G6.version);
 
+  // 创建图实例
+  const graph = new G6.Graph({
+    container: 'container',
+    width: 800,
+    height: 600,
+    defaultNode: {
+      type: 'circle',
+      size: 40,
+      style: {
+        fill: '#91d5ff',
+        stroke: '#5b8ff9',
+        lineWidth: 2,
+      },
+      labelCfg: {
+        position: 'bottom',
+        offset: 10,
+        style: {
+          fill: '#333',
   // 注册不同类型的节点
   const registerCustomNodes = () => {
     const nodeTypes = ['account', 'transaction', 'merchant', 'default'];
