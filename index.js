@@ -109,36 +109,42 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   };
 
-  // 创建更多的示例数据
-  const sampleData = {
-    nodes: [
-      { id: '1', label: '账户1', type: 'account' },
-      { id: '2', label: '账户2', type: 'account' },
-      { id: '3', label: '账户3', type: 'account' },
-      { id: '4', label: '交易1', type: 'transaction' },
-      { id: '5', label: '交易2', type: 'transaction' },
-      { id: '6', label: '商户1', type: 'merchant' },
-      { id: '7', label: '商户2', type: 'merchant' },
-      { id: '8', label: '账户4', type: 'account' },
-      { id: '9', label: '交易3', type: 'transaction' },
-      { id: '10', label: '商户3', type: 'merchant' }
-    ],
-    edges: [
-      { source: '1', target: '4' },
-      { source: '4', target: '2' },
-      { source: '2', target: '6' },
-      { source: '3', target: '5' },
-      { source: '5', target: '7' },
-      { source: '8', target: '9' },
-      { source: '9', target: '10' },
-      { source: '1', target: '5' },
-      { source: '2', target: '9' },
-      { source: '3', target: '4' }
-    ]
-  };
-
-  // 处理并渲染数据
-  processAndRenderData(sampleData);
+  // 初始化和加载数据
+  const graph = initGraph();
+  if (graph) {
+    // 加载 bankFraud.json 数据
+    fetch('./dataset/bankFraud.json')
+        .then(response => response.json())
+        .then(data => {
+            const dataWorker = new DataWorker(data);
+            const processedData = dataWorker.processData();
+            graph.data(processedData);
+            graph.render();
+            updateStats(processedData);
+        })
+        .catch(error => {
+            console.error('加载数据失败:', error);
+            // 如果加载失败，使用示例数据作为后备
+            const sampleData = {
+                nodes: [
+                    { id: '1', label: '账户1', type: 'account' },
+                    { id: '2', label: '账户2', type: 'account' },
+                    { id: '3', label: '交易1', type: 'transaction' },
+                    { id: '4', label: '商户1', type: 'merchant' }
+                ],
+                edges: [
+                    { source: '1', target: '3' },
+                    { source: '3', target: '2' },
+                    { source: '2', target: '4' }
+                ]
+            };
+            const dataWorker = new DataWorker(sampleData);
+            const processedData = dataWorker.processData();
+            graph.data(processedData);
+            graph.render();
+            updateStats(processedData);
+        });
+  }
 
   // 添加窗口大小改变的监听器
   window.addEventListener('resize', () => {
