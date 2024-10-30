@@ -325,7 +325,7 @@
     <script src="dataWorker.js"></script>
 
     <script>
-        let graph;
+        let graph; // Declare 'graph' variable here
         let showLabels = true;
 
         // 注册自定义节点
@@ -757,7 +757,7 @@
         }
 
         // 初始化和加载数据
-        let graph = initGraph();
+        graph = initGraph(); // Initialize 'graph' here
         if (graph) {
             fetch('dataset/bankFraud.json')
                 .then(async res => {

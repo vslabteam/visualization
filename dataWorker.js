@@ -62,10 +62,10 @@ class DataWorker {
     }
 }
 
-// 移除多余的 'graph' 声明
-// let graph = new Graph(); // 如果 'graph' 已经声明，请删除这行
+// Remove the redundant 'graph' declaration
+// let graph = new Graph(); // If 'graph' is already declared, delete this line
 
-// 使用已声明的 'graph' 变量
+// Use the already declared 'graph' variable
 graph = new Graph();
 
 if (typeof window !== 'undefined') {
