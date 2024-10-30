@@ -7,25 +7,31 @@ document.addEventListener('DOMContentLoaded', function() {
   
   console.log('G6 version:', G6.version);
 
-  // 更新统计信息的函数
+  // 修改统计信息的函数
   const updateStats = (data) => {
     document.getElementById('nodeCount').textContent = data.nodes.length;
     document.getElementById('edgeCount').textContent = data.edges.length;
     document.getElementById('accountCount').textContent = 
       data.nodes.filter(node => node.type === 'account').length;
     document.getElementById('transactionCount').textContent = 
-      data.nodes.filter(node => node.type === 'transaction').length;
+      data.nodes.filter(node => node.type === 'payment').length;
     document.getElementById('merchantCount').textContent = 
       data.nodes.filter(node => node.type === 'merchant').length;
   };
 
-  // 节点颜色配置
+  // 修改节点颜色配置
   const getNodeColor = (type) => {
     const colors = {
-      account: '#91d5ff',
-      transaction: '#87e8de',
-      merchant: '#ffd591',
-      default: '#d3adf7'
+      'account': '#91d5ff',
+      'credit-card': '#ffd591',
+      'payment': '#87e8de',
+      'loan': '#ff7875',
+      'new-account': '#95de64',
+      'bank': '#69c0ff',
+      'address': '#b7eb8f',
+      'phone': '#adc6ff',
+      'merchant': '#ffadd2',
+      'default': '#d3adf7'
     };
     return colors[type] || colors.default;
   };
@@ -152,35 +158,66 @@ document.addEventListener('DOMContentLoaded', function() {
   // 将控制函数绑定到 window 对象
   Object.assign(window, graphControls);
 
-  // 数据预处理函数
+  // 修改数据预处理函数
   const preprocessData = (rawData) => {
+    // 节点类型映射
+    const classToType = {
+      'Account Holder': 'account',
+      'Credit Card': 'credit-card',
+      'Payment': 'payment',
+      'Loan': 'loan',
+      'New Account': 'new-account',
+      'Bank branch': 'bank',
+      'address': 'address',
+      'phone Number': 'phone',
+      'Merchant': 'merchant'
+    };
+
     return {
       nodes: rawData.nodes.map(node => ({
         ...node,
-        id: String(node.id), // 确保 id 是字符串
-        type: node.type || 'default',
-        label: node.label || `Node ${node.id}`
+        id: String(node.id),
+        type: classToType[node.class] || 'default',
+        label: node.info?.name || node.info?.amount || node.info?.address || node.info?.phone || `${node.class} ${node.id}`,
+        // 保留原始坐标信息
+        x: node.x,
+        y: node.y
       })),
       edges: rawData.edges.map(edge => ({
         ...edge,
-        source: String(edge.source), // 确保 source 是字符串
-        target: String(edge.target)  // 确保 target 是字符串
+        source: String(edge.source),
+        target: String(edge.target)
       }))
     };
   };
 
-  // 加载 bankFraud.json 数据
+  // 修改数据加载部分
   fetch('./dataset/bankFraud.json')
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      console.log('成功获取数据文件');
+      return response.json();
+    })
     .then(data => {
+      console.log('原始数据:', data); // 打印原始数据
       const processedData = preprocessData(data);
+      console.log('处理后的数据:', processedData); // 打印处理后的数据
+      
+      if (!processedData.nodes || !processedData.edges) {
+        throw new Error('数据格式不正确');
+      }
+      
       graph.data(processedData);
       graph.render();
       updateStats(processedData);
     })
     .catch(error => {
-      console.error('加载数据失败:', error);
-      // 如果加载失败，使用示例数据作为后备
+      console.error('加载数据失败，详细错误:', error);
+      console.error('错误堆栈:', error.stack);
+      
+      // 使用示例数据作为后备
       const sampleData = {
         nodes: [
           { id: '1', label: '账户1', type: 'account' },
