@@ -10,7 +10,58 @@
 </head>
 <body>
     <div class="left-panel">
-        <!-- 左侧面板内容保持不变 -->
+        <div class="panel-title">图表信息</div>
+        <div class="stats-container">
+            <div class="info-item">
+                <div class="info-label">节点总数</div>
+                <div id="nodeCount">0</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">边总数</div>
+                <div id="edgeCount">0</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">账户节点数</div>
+                <div id="accountCount">0</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">交易节点</div>
+                <div id="transactionCount">0</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">商户节点数</div>
+                <div id="merchantCount">0</div>
+            </div>
+        </div>
+
+        <div class="panel-title">算法分析结果</div>
+        <div class="algorithm-results">
+            <div class="result-container">
+                <div class="result-item">
+                    <div class="info-label">中心度分析</div>
+                    <div id="centralityResult" class="result-content">
+                        <div class="top-nodes">
+                            <h4>重要节点 Top5：</h4>
+                            <ul id="centralityTop5"></ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="result-item">
+                    <div class="info-label">社区检测</div>
+                    <div id="communityResult" class="result-content">
+                        <div>社区数量：<span id="communityCount">0</span></div>
+                        <div>最大社区规模：<span id="maxCommunitySize">0</span></div>
+                    </div>
+                </div>
+                <div class="result-item">
+                    <div class="info-label">路径分析</div>
+                    <div id="pathResult" class="result-content">
+                        <div>平均路径长度：<span id="avgPathLength">0</span></div>
+                        <div>最长路径：<span id="maxPathLength">0</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="center-panel">
@@ -18,7 +69,94 @@
     </div>
 
     <div class="right-panel">
-        <!-- 右侧面板内容保持不变 -->
+        <div class="panel-title">操作面板</div>
+        <div class="control-item">
+            <button class="control-button" onclick="zoomIn()">放大</button>
+            <button class="control-button" onclick="zoomOut()">缩小</button>
+            <button class="control-button" onclick="resetZoom()">重置缩放</button>
+        </div>
+        <div class="control-item">
+            <button class="control-button" onclick="fitView()">适应画布</button>
+            <button class="control-button" onclick="toggleNodeLabels()">显示/隐藏标签</button>
+        </div>
+        <div class="control-item">
+            <div class="info-label">节点大小</div>
+            <input type="range" min="10" max="50" value="20" 
+                   onchange="updateNodeSize(this.value)" style="width: 100%;">
+        </div>
+        <div class="control-item">
+            <div class="info-label">线粗细</div>
+            <input type="range" min="1" max="10" value="2" 
+                   onchange="updateEdgeWidth(this.value)" style="width: 100%;">
+        </div>
+        <div class="control-item">
+            <div class="info-label">动画效果</div>
+            <button class="control-button" onclick="toggleEdgeAnimation()">边动画效果</button>
+            <button class="control-button" onclick="toggleNodeAnimation()">节点呼吸效果</button>
+        </div>
+        <div class="control-item">
+            <div class="info-label">节点筛选</div>
+            <select id="nodeFilter" onchange="filterNodes()" style="width: 100%; padding: 8px;">
+                <option value="all">显示所有</option>
+                <option value="account">仅账户节点</option>
+                <option value="transaction">仅交易节点</option>
+                <option value="merchant">仅商户节点</option>
+            </select>
+        </div>
+        <div class="control-item">
+            <div class="info-label">布局方式</div>
+            <select id="layoutSelect" onchange="changeLayout()" style="width: 100%; padding: 8px;">
+                <option value="force">力导向布局</option>
+                <option value="circular">环形布局</option>
+                <option value="radial">辐射布局</option>
+                <option value="dagre">层次布局</option>
+                <option value="concentric">同心圆布局</option>
+            </select>
+        </div>
+        <div class="control-item" id="layoutParams">
+            <div class="info-label">布局参数</div>
+            <div id="forceParams" style="display: none;">
+                <input type="range" min="50" max="300" value="100" 
+                       onchange="updateForceDistance(this.value)" style="width: 100%;">
+                <label>链接距离</label>
+            </div>
+        </div>
+        <div class="control-item">
+            <button class="control-button" onclick="exportImage('png')">导出为PNG</button>
+            <button class="control-button" onclick="exportImage('svg')">导出为SVG</button>
+        </div>
+        <div class="control-item">
+            <div class="info-label">主题切换</div>
+            <select id="themeSelect" onchange="changeTheme()" style="width: 100%; padding: 8px;">
+                <option value="default">默认主题</option>
+                <option value="dark">暗黑主题</option>
+                <option value="colorful">多彩主题</option>
+            </select>
+        </div>
+        <div class="control-item">
+            <div class="info-label">边特效</div>
+            <select id="edgeEffect" onchange="changeEdgeEffect()" style="width: 100%; padding: 8px;">
+                <option value="none">无特效</option>
+                <option value="flow">流动效果</option>
+                <option value="glow">发光效果</option>
+            </select>
+        </div>
+        <div class="control-item">
+            <button class="control-button" onclick="toggleStats()">切换性能监控</button>
+        </div>
+        <div class="control-item">
+            <div class="info-label">图算法</div>
+            <select id="algorithmSelect" style="width: 100%; padding: 8px; margin-bottom: 10px;">
+                <option value="centrality">中心度分析</option>
+                <option value="community">社区检测</option>
+                <option value="shortestPath">最短路径</option>
+                <option value="cycle">环路检测</option>
+            </select>
+            <button class="control-button" onclick="runAlgorithm()">运行算法</button>
+        </div>
+        <div id="algorithmParams" class="control-item">
+            <!-- 动态显示不同算法的参数设置 -->
+        </div>
     </div>
 
     <script src="dataWorker.js"></script>
