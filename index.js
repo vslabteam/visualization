@@ -60,6 +60,42 @@ document.addEventListener('DOMContentLoaded', function() {
     console.error('注册节点时出错:', error);
   }
 
+  // 定义控制函数
+  const graphControls = {
+    zoomIn: () => {
+      graph.zoom(1.2);
+    },
+    zoomOut: () => {
+      graph.zoom(0.8);
+    },
+    resetZoom: () => {
+      graph.zoomTo(1);
+    },
+    fitView: () => {
+      graph.fitView();
+    },
+    toggleNodeLabels: () => {
+      showLabels = !showLabels;
+      graph.refresh();
+    },
+    updateNodeSize: (size) => {
+      graph.updateNodes(graph.getNodes(), node => ({
+        size: Number(size)
+      }));
+    },
+    updateEdgeWidth: (width) => {
+      graph.updateEdges(graph.getEdges(), edge => ({
+        style: {
+          ...edge.getModel().style,
+          lineWidth: Number(width)
+        }
+      }));
+    }
+  };
+
+  // 将控制函数绑定到 window 对象
+  Object.assign(window, graphControls);
+
   // 创建图实例
   const graph = new G6.Graph({
     container: 'container',
@@ -96,18 +132,6 @@ document.addEventListener('DOMContentLoaded', function() {
       edgeStrength: 0.1
     }
   });
-
-  // 使用 DataWorker 处理数据
-  const processAndRenderData = (rawData) => {
-    try {
-      const dataWorker = new DataWorker(rawData);
-      const processedData = dataWorker.processData();
-      graph.data(processedData);
-      graph.render();
-    } catch (error) {
-      console.error('数据处理错误:', error);
-    }
-  };
 
   // 加载 bankFraud.json 数据
   fetch('./dataset/bankFraud.json')
