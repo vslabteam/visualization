@@ -7,6 +7,18 @@ document.addEventListener('DOMContentLoaded', function() {
   
   console.log('G6 version:', G6.version);
 
+  // 更新统计信息的函数
+  const updateStats = (data) => {
+    document.getElementById('nodeCount').textContent = data.nodes.length;
+    document.getElementById('edgeCount').textContent = data.edges.length;
+    document.getElementById('accountCount').textContent = 
+      data.nodes.filter(node => node.type === 'account').length;
+    document.getElementById('transactionCount').textContent = 
+      data.nodes.filter(node => node.type === 'transaction').length;
+    document.getElementById('merchantCount').textContent = 
+      data.nodes.filter(node => node.type === 'merchant').length;
+  };
+
   // 节点颜色配置
   const getNodeColor = (type) => {
     const colors = {
@@ -48,6 +60,21 @@ document.addEventListener('DOMContentLoaded', function() {
             name: 'icon-shape',
           });
 
+          if (cfg.label) {
+            group.addShape('text', {
+              attrs: {
+                text: cfg.label,
+                x: 0,
+                y: 30,
+                textAlign: 'center',
+                textBaseline: 'middle',
+                fill: '#666',
+                fontSize: 12
+              },
+              name: 'text-shape'
+            });
+          }
+
           return keyShape;
         },
       }, 'circle');
@@ -60,47 +87,11 @@ document.addEventListener('DOMContentLoaded', function() {
     console.error('注册节点时出错:', error);
   }
 
-  // 定义控制函数
-  const graphControls = {
-    zoomIn: () => {
-      graph.zoom(1.2);
-    },
-    zoomOut: () => {
-      graph.zoom(0.8);
-    },
-    resetZoom: () => {
-      graph.zoomTo(1);
-    },
-    fitView: () => {
-      graph.fitView();
-    },
-    toggleNodeLabels: () => {
-      showLabels = !showLabels;
-      graph.refresh();
-    },
-    updateNodeSize: (size) => {
-      graph.updateNodes(graph.getNodes(), node => ({
-        size: Number(size)
-      }));
-    },
-    updateEdgeWidth: (width) => {
-      graph.updateEdges(graph.getEdges(), edge => ({
-        style: {
-          ...edge.getModel().style,
-          lineWidth: Number(width)
-        }
-      }));
-    }
-  };
-
-  // 将控制函数绑定到 window 对象
-  Object.assign(window, graphControls);
-
   // 创建图实例
   const graph = new G6.Graph({
     container: 'container',
-    width: window.innerWidth,
-    height: window.innerHeight,
+    width: document.querySelector('.center-panel').offsetWidth,
+    height: document.querySelector('.center-panel').offsetHeight,
     defaultNode: {
       type: 'default',
       size: 40,
@@ -133,12 +124,56 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
+  // 定义控制函数
+  const graphControls = {
+    zoomIn: () => graph.zoom(1.2),
+    zoomOut: () => graph.zoom(0.8),
+    resetZoom: () => graph.zoomTo(1),
+    fitView: () => graph.fitView(),
+    toggleNodeLabels: () => {
+      showLabels = !showLabels;
+      graph.refresh();
+    },
+    updateNodeSize: (size) => {
+      graph.updateNodes(graph.getNodes(), node => ({
+        size: Number(size)
+      }));
+    },
+    updateEdgeWidth: (width) => {
+      graph.updateEdges(graph.getEdges(), edge => ({
+        style: {
+          ...edge.getModel().style,
+          lineWidth: Number(width)
+        }
+      }));
+    }
+  };
+
+  // 将控制函数绑定到 window 对象
+  Object.assign(window, graphControls);
+
+  // 数据预处理函数
+  const preprocessData = (rawData) => {
+    return {
+      nodes: rawData.nodes.map(node => ({
+        ...node,
+        id: String(node.id), // 确保 id 是字符串
+        type: node.type || 'default',
+        label: node.label || `Node ${node.id}`
+      })),
+      edges: rawData.edges.map(edge => ({
+        ...edge,
+        source: String(edge.source), // 确保 source 是字符串
+        target: String(edge.target)  // 确保 target 是字符串
+      }))
+    };
+  };
+
   // 加载 bankFraud.json 数据
   fetch('./dataset/bankFraud.json')
     .then(response => response.json())
     .then(data => {
-      const dataWorker = new DataWorker(data);
-      const processedData = dataWorker.processData();
+      const processedData = preprocessData(data);
       graph.data(processedData);
       graph.render();
       updateStats(processedData);
@@ -159,17 +194,16 @@ document.addEventListener('DOMContentLoaded', function() {
           { source: '2', target: '4' }
         ]
       };
-      const dataWorker = new DataWorker(sampleData);
-      const processedData = dataWorker.processData();
-      graph.data(processedData);
+      graph.data(sampleData);
       graph.render();
-      updateStats(processedData);
+      updateStats(sampleData);
     });
 
   // 添加窗口大小改变的监听器
   window.addEventListener('resize', () => {
     if (graph) {
-      graph.changeSize(window.innerWidth, window.innerHeight);
+      const container = document.querySelector('.center-panel');
+      graph.changeSize(container.offsetWidth, container.offsetHeight);
     }
   });
 }); 
