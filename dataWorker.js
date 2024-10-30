@@ -62,11 +62,7 @@ class DataWorker {
     }
 }
 
-// Remove the redundant 'graph' declaration
-// let graph = new Graph(); // If 'graph' is already declared, delete this line
-
-// Use the already declared 'graph' variable
-graph = new Graph();
+// Remove or comment out any usage of 'Graph' in this file
 
 if (typeof window !== 'undefined') {
     window.DataWorker = DataWorker;

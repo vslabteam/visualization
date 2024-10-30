@@ -6,6 +6,7 @@
     <title>银行欺诈数据可视化</title>
     <script src="https://gw.alipayobjects.com/os/lib/antv/g6/5.0.27/dist/g6.min.js"></script>
     <script src="https://mrdoob.github.io/stats.js/build/stats.min.js"></script>
+    <script src="https://gw.alipayobjects.com/os/antv/pkg/_antv.g6-4.6.9/dist/g6.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -325,7 +326,6 @@
     <script src="dataWorker.js"></script>
 
     <script>
-        let graph; // Declare 'graph' variable here
         let showLabels = true;
 
         // 注册自定义节点
@@ -757,7 +757,7 @@
         }
 
         // 初始化和加载数据
-        graph = initGraph(); // Initialize 'graph' here
+        const graph = initGraph(); // Ensure 'graph' is declared only once
         if (graph) {
             fetch('dataset/bankFraud.json')
                 .then(async res => {
