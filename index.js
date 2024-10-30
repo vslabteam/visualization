@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
   };
 
   // 注册不同类型的节点
-  try {
+  const registerCustomNodes = () => {
     const nodeTypes = ['account', 'transaction', 'merchant', 'default'];
     
     nodeTypes.forEach(type => {
@@ -36,36 +36,37 @@ document.addEventListener('DOMContentLoaded', function() {
             name: 'circle-shape',
           });
 
-          if (cfg.label) {
-            group.addShape('text', {
-              attrs: {
-                text: cfg.label,
-                x: 0,
-                y: 35,
-                textAlign: 'center',
-                textBaseline: 'middle',
-                fill: '#333',
-                fontSize: 12
-              },
-              name: 'text-shape'
-            });
-          }
+          // 添加图标
+          group.addShape('image', {
+            attrs: {
+              x: -12,
+              y: -12,
+              width: 24,
+              height: 24,
+              img: `images/${type}.svg`
+            },
+            name: 'icon-shape',
+          });
 
           return keyShape;
         },
       }, 'circle');
     });
+  };
+
+  try {
+    registerCustomNodes();
   } catch (error) {
     console.error('注册节点时出错:', error);
   }
 
-  // 创建图实例
+  // 创建图实例（只创建一次）
   const graph = new G6.Graph({
     container: 'container',
     width: window.innerWidth,
     height: window.innerHeight,
     defaultNode: {
-      type: 'account',
+      type: 'default',
       size: 40,
       labelCfg: {
         position: 'bottom',
@@ -96,46 +97,48 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // 加载并处理 bankFraud.json 数据
-  fetch('dataset/bankFraud.json')
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('HTTP error! status: ' + response.status);
-      }
-      return response.json();
-    })
-    .then(data => {
-      // 使用 DataWorker 处理数据
-      const dataWorker = new DataWorker(data);
+  // 使用 DataWorker 处理数据
+  const processAndRenderData = (rawData) => {
+    try {
+      const dataWorker = new DataWorker(rawData);
       const processedData = dataWorker.processData();
-      
-      // 渲染数据
       graph.data(processedData);
       graph.render();
-    })
-    .catch(error => {
-      console.error('加载数据失败:', error);
-      // 如果加载失败，使用示例数据
-      const sampleData = {
-        nodes: [
-          { id: '1', label: '账户1', type: 'account' },
-          { id: '2', label: '账户2', type: 'account' },
-          { id: '3', label: '账户3', type: 'account' },
-          { id: '4', label: '交易1', type: 'transaction' },
-          { id: '5', label: '交易2', type: 'transaction' },
-          { id: '6', label: '商户1', type: 'merchant' }
-        ],
-        edges: [
-          { source: '1', target: '4' },
-          { source: '4', target: '2' },
-          { source: '2', target: '6' },
-          { source: '3', target: '5' },
-          { source: '5', target: '6' }
-        ]
-      };
-      graph.data(sampleData);
-      graph.render();
-    });
+    } catch (error) {
+      console.error('数据处理错误:', error);
+    }
+  };
+
+  // 创建更多的示例数据
+  const sampleData = {
+    nodes: [
+      { id: '1', label: '账户1', type: 'account' },
+      { id: '2', label: '账户2', type: 'account' },
+      { id: '3', label: '账户3', type: 'account' },
+      { id: '4', label: '交易1', type: 'transaction' },
+      { id: '5', label: '交易2', type: 'transaction' },
+      { id: '6', label: '商户1', type: 'merchant' },
+      { id: '7', label: '商户2', type: 'merchant' },
+      { id: '8', label: '账户4', type: 'account' },
+      { id: '9', label: '交易3', type: 'transaction' },
+      { id: '10', label: '商户3', type: 'merchant' }
+    ],
+    edges: [
+      { source: '1', target: '4' },
+      { source: '4', target: '2' },
+      { source: '2', target: '6' },
+      { source: '3', target: '5' },
+      { source: '5', target: '7' },
+      { source: '8', target: '9' },
+      { source: '9', target: '10' },
+      { source: '1', target: '5' },
+      { source: '2', target: '9' },
+      { source: '3', target: '4' }
+    ]
+  };
+
+  // 处理并渲染数据
+  processAndRenderData(sampleData);
 
   // 添加窗口大小改变的监听器
   window.addEventListener('resize', () => {
