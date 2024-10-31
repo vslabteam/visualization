@@ -1302,7 +1302,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const data = graph.save();
       const anomalies = [];
 
-      // 循环模式检测
+      // 循环模式检��
       const cycles = this.detectCycles(data);
       if (cycles.length > 0) {
         anomalies.push({
@@ -3879,7 +3879,6 @@ document.addEventListener('DOMContentLoaded', function() {
       this.stats = new Stats();
       this.setupPanels();
       this.startMonitoring();
-      this.setupMetricsCollection();
     },
 
     // 设置监控面板
@@ -3979,10 +3978,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 更新性能指标
     updateMetrics() {
+      if (!graph) return;
+      
       const startTime = performance.now();
       
       // 测量节点渲染时间
-      if (graph && graph.getNodes) {
+      if (graph.getNodes) {
         graph.getNodes().forEach(node => {
           if (node.isVisible && node.isVisible()) {
             node.draw();
@@ -3993,7 +3994,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       // 测量边渲染时间
       const edgeStartTime = performance.now();
-      if (graph && graph.getEdges) {
+      if (graph.getEdges) {
         graph.getEdges().forEach(edge => {
           if (edge.isVisible && edge.isVisible()) {
             edge.draw();
@@ -4003,11 +4004,9 @@ document.addEventListener('DOMContentLoaded', function() {
       this.metrics.edgeRenderTime = performance.now() - edgeStartTime;
 
       // 测量布局计算时间
-      if (graph && graph.get && graph.get('layout')) {
-        const layout = graph.get('layout');
-        if (layout && typeof layout.isLayouting === 'function') {
-          this.metrics.layoutTime = performance.now() - (layout.startTime || 0);
-        }
+      const layout = graph && graph.get && graph.get('layout');
+      if (layout) {
+        this.metrics.layoutTime = performance.now() - (layout.startTime || 0);
       }
     },
 
@@ -4379,11 +4378,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const canvas = graph.get('canvas');
         if (!canvas) return;
 
+        // 获取可视区域
+        const point = graph.getCanvasPoint();
+        const zoom = graph.getZoom();
+        const width = canvas.get('width');
+        const height = canvas.get('height');
+        
         const viewportBBox = {
-          x: 0,
-          y: 0,
-          width: canvas.get('width'),
-          height: canvas.get('height')
+          x: -point.x / zoom,
+          y: -point.y / zoom,
+          width: width / zoom,
+          height: height / zoom
         };
         
         nodes.forEach(node => {
@@ -4392,7 +4397,7 @@ document.addEventListener('DOMContentLoaded', function() {
           
           if (visible) {
             node.show();
-            this.adjustNodeDetail(node, graph.getZoom());
+            this.adjustNodeDetail(node, zoom);
           } else {
             node.hide();
           }
@@ -6226,7 +6231,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // 在���实例创建后添加
+  // 在实例创建后添加
   graph.on('afterrender', () => {
     console.log('图渲染完成');
     console.log('节点数量:', graph.getNodes().length);
