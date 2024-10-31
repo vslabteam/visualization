@@ -1302,7 +1302,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const data = graph.save();
       const anomalies = [];
 
-      // 循环模式检��
+      // 循环模式检
       const cycles = this.detectCycles(data);
       if (cycles.length > 0) {
         anomalies.push({
@@ -3887,13 +3887,7 @@ document.addEventListener('DOMContentLoaded', function() {
       this.panels.fps = this.stats.addPanel(new Stats.Panel('FPS', '#0ff', '#002'));
       // 内存面板
       this.panels.memory = this.stats.addPanel(new Stats.Panel('MB', '#f08', '#201'));
-      // 节点渲染时间面板
-      this.panels.nodeRender = this.stats.addPanel(new Stats.Panel('Nodes', '#0f0', '#020'));
-      // 边渲染时间面板
-      this.panels.edgeRender = this.stats.addPanel(new Stats.Panel('Edges', '#ff0', '#220'));
-      // 布局计算时间面板
-      this.panels.layout = this.stats.addPanel(new Stats.Panel('Layout', '#f0f', '#202'));
-
+      
       this.stats.showPanel(0); // 默认显示FPS面板
     },
 
@@ -3912,134 +3906,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // 动画循环
     animate() {
       this.stats.begin();
-      
-      // 更新各项指标
-      this.updateMetrics();
-      
       this.stats.end();
-      
       requestAnimationFrame(() => this.animate());
-    },
-
-    // 设置指标收集
-    setupMetricsCollection() {
-      setInterval(() => {
-        this.collectMetrics();
-      }, 1000);
-    },
-
-    // 收集性能指标
-    collectMetrics() {
-      const metrics = {
-        fps: this.stats.getFPS(),
-        memory: performance.memory ? {
-          used: Math.round(performance.memory.usedJSHeapSize / 1048576),
-          total: Math.round(performance.memory.totalJSHeapSize / 1048576),
-          limit: Math.round(performance.memory.jsHeapSizeLimit / 1048576)
-        } : null,
-        nodes: {
-          count: graph.getNodes().length,
-          visible: graph.getNodes().filter(node => node.isVisible()).length,
-          renderTime: this.metrics.nodeRenderTime
-        },
-        edges: {
-          count: graph.getEdges().length,
-          visible: graph.getEdges().filter(edge => edge.isVisible()).length,
-          renderTime: this.metrics.edgeRenderTime
-        },
-        layout: {
-          time: this.metrics.layoutTime,
-          type: graph.get('layout').type
-        }
-      };
-
-      this.updatePanels(metrics);
-      this.logMetrics(metrics);
-    },
-
-    // 更新监控面板
-    updatePanels(metrics) {
-      this.panels.fps.update(metrics.fps, 60);
-      if (metrics.memory) {
-        this.panels.memory.update(metrics.memory.used, metrics.memory.limit);
-      }
-      this.panels.nodeRender.update(metrics.nodes.renderTime, 100);
-      this.panels.edgeRender.update(metrics.edges.renderTime, 100);
-      this.panels.layout.update(metrics.layout.time, 1000);
-    },
-
-    // 记录性能指标
-    logMetrics(metrics) {
-      console.log('Performance Metrics:', {
-        timestamp: new Date().toISOString(),
-        ...metrics
-      });
-    },
-
-    // 更新性能指标
-    updateMetrics() {
-      if (!graph) return;
-      
-      const startTime = performance.now();
-      
-      // 测量节点渲染时间
-      if (graph.getNodes) {
-        graph.getNodes().forEach(node => {
-          if (node.isVisible && node.isVisible()) {
-            node.draw();
-          }
-        });
-      }
-      this.metrics.nodeRenderTime = performance.now() - startTime;
-
-      // 测量边渲染时间
-      const edgeStartTime = performance.now();
-      if (graph.getEdges) {
-        graph.getEdges().forEach(edge => {
-          if (edge.isVisible && edge.isVisible()) {
-            edge.draw();
-          }
-        });
-      }
-      this.metrics.edgeRenderTime = performance.now() - edgeStartTime;
-
-      // 测量布局计算时间
-      const layout = graph && graph.get && graph.get('layout');
-      if (layout) {
-        this.metrics.layoutTime = performance.now() - (layout.startTime || 0);
-      }
-    },
-
-    // 导出性能报告
-    exportPerformanceReport() {
-      const report = {
-        timestamp: new Date().toISOString(),
-        systemInfo: {
-          userAgent: navigator.userAgent,
-          platform: navigator.platform,
-          webglSupported: G6.Util.isWebGLSupported(),
-          renderer: graph.get('renderer').type
-        },
-        metrics: this.metrics,
-        graphStats: {
-          nodeCount: graph.getNodes().length,
-          edgeCount: graph.getEdges().length,
-          layoutType: graph.get('layout').type,
-          renderMode: graph.get('renderer').type
-        }
-      };
-
-      const blob = new Blob([JSON.stringify(report, null, 2)], {
-        type: 'application/json'
-      });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `performance-report-${Date.now()}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
     }
   };
 
@@ -4378,9 +4246,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const canvas = graph.get('canvas');
         if (!canvas) return;
 
-        // 获取可视区域
-        const point = graph.getCanvasPoint();
-        const zoom = graph.getZoom();
+        const point = graph.getCanvasPoint ? graph.getCanvasPoint() : {x: 0, y: 0};
+        const zoom = graph.getZoom ? graph.getZoom() : 1;
         const width = canvas.get('width');
         const height = canvas.get('height');
         
@@ -4419,60 +4286,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 根据缩放级别调整节点细节
     adjustNodeDetail(node, zoom) {
+      if (!node || !node.getModel) return;
+      
+      const model = node.getModel();
       if (zoom < 0.5) {
-        // 低缩放级别：简化显示
         graph.updateItem(node, {
           labelCfg: { style: { opacity: 0 } },
           style: { lineWidth: 1 }
         });
       } else if (zoom < 1) {
-        // 中等缩放级别
         graph.updateItem(node, {
           labelCfg: { style: { opacity: 0.5 } },
           style: { lineWidth: 2 }
         });
       } else {
-        // 高缩放级别：显示完整细节
         graph.updateItem(node, {
           labelCfg: { style: { opacity: 1 } },
           style: { lineWidth: 3 }
         });
       }
-    },
-
-    // 批量更新优化
-    batchUpdate(updates) {
-      graph.updateLayout({
-        animate: false
-      });
-
-      const batch = [];
-      updates.forEach(update => {
-        batch.push(() => {
-          const { id, ...changes } = update;
-          const item = graph.findById(id);
-          if (item) {
-            graph.updateItem(item, changes);
-          }
-        });
-      });
-
-      // 使用 requestAnimationFrame 分批执行更新
-      const executeBatch = (start) => {
-        const end = Math.min(start + 50, batch.length);
-        for (let i = start; i < end; i++) {
-          batch[i]();
-        }
-        if (end < batch.length) {
-          requestAnimationFrame(() => executeBatch(end));
-        } else {
-          graph.updateLayout({
-            animate: true
-          });
-        }
-      };
-
-      requestAnimationFrame(() => executeBatch(0));
     }
   };
 
@@ -5871,7 +5703,7 @@ document.addEventListener('DOMContentLoaded', function() {
         this.currentLocale = this.translations[browserLocale] ? browserLocale : 'en-US';
       }
 
-      // 添加语言切换控件
+      // 添加语言切���控件
       this.addLanguageSelector();
       // 初始更新UI
       this.updateUI();
