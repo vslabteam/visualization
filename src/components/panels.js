@@ -9,7 +9,55 @@ export const PanelManager = {
     this.setupPanels();
     this.initializePanelStates();
     this.bindEvents();
+    this.setupSectionToggles();
     EventBus.emit('panels:initialized');
+  },
+
+  // 设置面板折叠功能
+  setupSectionToggles() {
+    // 为所有带有 data-section-toggle 属性的元素添加点击事件
+    document.querySelectorAll('[data-section-toggle]').forEach(header => {
+      header.addEventListener('click', (e) => {
+        const sectionId = header.getAttribute('data-section-toggle');
+        this.toggleSection(sectionId);
+      });
+    });
+  },
+
+  // 切换区域显示/隐藏
+  toggleSection(sectionId) {
+    const section = document.getElementById(sectionId);
+    if (!section) return;
+
+    const header = section.previousElementSibling;
+    const icon = header.querySelector('.toggle-icon');
+    
+    section.classList.toggle('collapsed');
+    
+    if (icon) {
+      icon.textContent = section.classList.contains('collapsed') ? '▶' : '▼';
+    }
+
+    // 保存状态到本地存储
+    this.saveSectionStates();
+    
+    EventBus.emit('section:toggled', {
+      id: sectionId,
+      collapsed: section.classList.contains('collapsed')
+    });
+  },
+
+  // 保存所有区域状态
+  saveSectionStates() {
+    const states = {};
+    document.querySelectorAll('[data-section-toggle]').forEach(header => {
+      const sectionId = header.getAttribute('data-section-toggle');
+      const section = document.getElementById(sectionId);
+      if (section) {
+        states[sectionId] = !section.classList.contains('collapsed');
+      }
+    });
+    localStorage.setItem('sectionStates', JSON.stringify(states));
   },
 
   // 设置面板
