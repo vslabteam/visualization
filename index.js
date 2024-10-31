@@ -1060,21 +1060,29 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   };
 
-  // 添加框选功能 - 替代方案
+  // 添加框选功能 - 修复版本
   const enableLasso = () => {
-    // 添加框选模式
-    graph.addBehaviors({
-      'drag-canvas': true,
-      'zoom-canvas': true,
-      'lasso-select': {
+    // 添加框选行为
+    graph.addBehaviors(
+      {
+        type: 'lasso-select',
         selectedState: 'selected',
-        trigger: 'shift',  // 按住 shift 键进行框选
+        trigger: 'shift', // 按住 shift 键进行框选
         onSelect: (nodes, edges) => {
           console.log('框选的节点:', nodes);
           console.log('框选的边:', edges);
+          
+          // 高亮选中的元素
+          nodes.forEach(node => {
+            graph.setItemState(node, 'selected', true);
+          });
+          edges.forEach(edge => {
+            graph.setItemState(edge, 'selected', true);
+          });
         }
-      }
-    }, 'default');
+      },
+      'default'
+    );
   };
 
   // 添加缩略图
@@ -2030,7 +2038,7 @@ document.addEventListener('DOMContentLoaded', function() {
         labels: distribution.map((_, i) => 
           `${(min + i * bucketSize).toFixed(2)}-${(min + (i + 1) * bucketSize).toFixed(2)}`
         ),
-        title: '交易金���分布'
+        title: '交易金分布'
       };
     },
 
@@ -3150,7 +3158,7 @@ document.addEventListener('DOMContentLoaded', function() {
       this.showInfoPanel(info);
     },
 
-    // 显示路径信息
+    // ��示路径信息
     showPathInfo(path, index) {
       const info = document.createElement('div');
       info.className = 'path-info';
