@@ -35,6 +35,12 @@
       .section-header:hover {
         background: #e6f7ff;
       }
+
+      .panel-section {
+        border: 1px solid #e8e8e8;
+        margin-bottom: 8px;
+        border-radius: 4px;
+      }
     </style>
 </head>
 <body>
@@ -128,7 +134,7 @@
         <div class="panel-group">
             <!-- 1. 基础操作 -->
             <div class="panel-section">
-                <div class="section-header" onclick="toggleSection('basic-controls')">
+                <div class="section-header" data-section="basic-controls">
                     <span class="section-title">基础操作</span>
                     <span class="toggle-icon">▼</span>
                 </div>
@@ -144,7 +150,7 @@
 
             <!-- 2. 视图设置 -->
             <div class="panel-section">
-                <div class="section-header" onclick="toggleSection('view-settings')">
+                <div class="section-header" data-section="view-settings">
                     <span class="section-title">视图设置</span>
                     <span class="toggle-icon">▼</span>
                 </div>
@@ -163,7 +169,7 @@
 
             <!-- 3. 布局设置 -->
             <div class="panel-section">
-                <div class="section-header" onclick="toggleSection('layout-settings')">
+                <div class="section-header" data-section="layout-settings">
                     <span class="section-title">布局设置</span>
                     <span class="toggle-icon">▼</span>
                 </div>
@@ -183,7 +189,7 @@
 
             <!-- 4. 分析工具 -->
             <div class="panel-section">
-                <div class="section-header" onclick="toggleSection('analysis-tools')">
+                <div class="section-header" data-section="analysis-tools">
                     <span class="section-title">分析工具</span>
                     <span class="toggle-icon">▼</span>
                 </div>
@@ -203,7 +209,7 @@
 
             <!-- 5. 取证工具 -->
             <div class="panel-section">
-                <div class="section-header" onclick="toggleSection('forensics-tools')">
+                <div class="section-header" data-section="forensics-tools">
                     <span class="section-title">取证工具</span>
                     <span class="toggle-icon">▼</span>
                 </div>
@@ -219,7 +225,7 @@
 
             <!-- 6. 筛选工具 -->
             <div class="panel-section">
-                <div class="section-header" onclick="toggleSection('filter-tools')">
+                <div class="section-header" data-section="filter-tools">
                     <span class="section-title">筛选工具</span>
                     <span class="toggle-icon">▼</span>
                 </div>
@@ -250,7 +256,7 @@
 
             <!-- 7. 导出工具 -->
             <div class="panel-section">
-                <div class="section-header" onclick="toggleSection('export-tools')">
+                <div class="section-header" data-section="export-tools">
                     <span class="section-title">导出工具</span>
                     <span class="toggle-icon">▼</span>
                 </div>

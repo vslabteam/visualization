@@ -20,6 +20,25 @@ window.toggleSection = function(sectionId) {
   localStorage.setItem('sectionStates', JSON.stringify(sectionStates));
 };
 
+// 确保在 DOM 加载完成后初始化面板状态
+document.addEventListener('DOMContentLoaded', function() {
+  // 初始化面板状态
+  const sectionStates = JSON.parse(localStorage.getItem('sectionStates') || '{}');
+  Object.entries(sectionStates).forEach(([sectionId, isExpanded]) => {
+    const section = document.getElementById(sectionId);
+    if (section) {
+      if (!isExpanded) {
+        section.classList.add('collapsed');
+        const header = section.previousElementSibling;
+        const icon = header.querySelector('.toggle-icon');
+        if (icon) {
+          icon.textContent = '▶';
+        }
+      }
+    }
+  });
+});
+
 document.addEventListener('DOMContentLoaded', function() {
   // 检查 G6 是否正确加载
   if (typeof G6 === 'undefined') {
@@ -1423,7 +1442,8 @@ document.addEventListener('DOMContentLoaded', function() {
                   }
                 }
               });
-              break;
+            });
+            break;
           case 'rapid':
             anomaly.transactions.forEach(transaction => {
               const edge = graph.findById(transaction.id);
@@ -1760,7 +1780,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="community-results">
           <div>社区总数: ${communityStats.count}</div>
           <div>最大社区规模: ${communityStats.maxSize}</div>
-          <div>平均社区规模: ${communityStats.avgSize.toFixed(2)}</div>
+          <div>平��社区规模: ${communityStats.avgSize.toFixed(2)}</div>
           <div class="community-distribution">
             ${this.renderCommunityDistribution(communityStats.distribution)}
           </div>
@@ -1898,7 +1918,7 @@ document.addEventListener('DOMContentLoaded', function() {
       };
     },
 
-    // 收集图统计信息
+    // 收集图统计息
     collectGraphStats() {
       return {
         nodeCount: graph.getNodes().length,
@@ -2010,7 +2030,7 @@ document.addEventListener('DOMContentLoaded', function() {
       };
     },
 
-    // 生成网络拓扑图
+    // 生成网络���扑图
     generateNetworkTopologyChart() {
       const data = graph.save();
       const nodeTypes = {};
@@ -3940,7 +3960,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     },
 
-    // 更新性能指标
+    // ���新性能指标
     updateMetrics() {
       const startTime = performance.now();
       
@@ -4519,7 +4539,7 @@ document.addEventListener('DOMContentLoaded', function() {
     startMemoryCleanup() {
       setInterval(() => {
         this.cleanupUnusedResources();
-      }, 60000); // 每分钟执行一次
+      }, 60000); // 每分执行一次
     },
 
     // 清理未使用的资源
@@ -5686,7 +5706,7 @@ document.addEventListener('DOMContentLoaded', function() {
         'node.merchant': '商户',
         'node.transaction': '交易',
 
-        // 算法分析
+        // 算法分
         'algorithm.centrality': '中心度分析',
         'algorithm.community': '社区检测',
         'algorithm.path': '路径分析',
@@ -6001,7 +6021,7 @@ document.addEventListener('DOMContentLoaded', function() {
       doc.setFontSize(20);
       doc.text('欺诈分析调查报告', 20, 20);
       
-      // 添加元数据
+      // 添加元数���
       doc.setFontSize(12);
       doc.text(`案件编号: ${evidence.metadata.caseId}`, 20, 40);
       doc.text(`调查人员: ${evidence.metadata.investigator}`, 20, 50);
