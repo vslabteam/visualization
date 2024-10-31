@@ -4246,6 +4246,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const canvas = graph.get('canvas');
         if (!canvas) return;
 
+        // 使用画布和缩放信息计算可视区域
         const point = graph.getCanvasPoint ? graph.getCanvasPoint() : {x: 0, y: 0};
         const zoom = graph.getZoom ? graph.getZoom() : 1;
         const width = canvas.get('width');
@@ -4397,16 +4398,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // WebGL 渲染支持
     enableWebGLRenderer() {
-      if (G6.Util.isWebGLSupported()) {
-        const renderer = new G6.Renderer.WebGL();
-        graph.set('renderer', renderer);
-        
-        // 配置WebGL选项
-        renderer.configure({
-          enableBloom: true,
-          enableSSAO: true,
-          antialias: true
-        });
+      try {
+        // 检查是否支持 WebGL
+        const canvas = document.createElement('canvas');
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        const isWebGLSupported = !!gl;
+
+        if (isWebGLSupported && graph.get('renderer')) {
+          const renderer = graph.get('renderer');
+          renderer.configure({
+            enableBloom: true,
+            enableSSAO: true,
+            antialias: true
+          });
+        }
+      } catch (error) {
+        console.warn('WebGL 渲染器初始化失败:', error);
       }
     }
   };
@@ -5703,7 +5710,7 @@ document.addEventListener('DOMContentLoaded', function() {
         this.currentLocale = this.translations[browserLocale] ? browserLocale : 'en-US';
       }
 
-      // 添加语言切���控件
+      // 添加语言切控件
       this.addLanguageSelector();
       // 初始更新UI
       this.updateUI();
