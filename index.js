@@ -248,7 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 图算法实现
   const GraphAlgorithms = {
-    // 中心度分析 - 使用 G6 内置的 DEGREE_CENTRALITY 算法
+    // 中心度分析 - 使用 G6 内置的 degreeCentrality 算法
     calculateCentrality(graph) {
         const data = {
             nodes: graph.save().nodes,
@@ -256,7 +256,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         
         // 使用 G6 内置的度中心性算法
-        const centralityResults = G6.Algorithm.DEGREE_CENTRALITY(data);
+        const centralityResults = G6.Util.degreeCentrality(data);
         
         // 将结果转换为数组并排序
         const sortedNodes = Object.entries(centralityResults)
@@ -280,7 +280,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return sortedNodes;
     },
 
-    // 社区检测 - 使用 G6 内置的 LOUVAIN 算法
+    // 社区检测 - 使用 G6 内置的 louvain 算法
     detectCommunities(graph) {
         const data = {
             nodes: graph.save().nodes,
@@ -288,7 +288,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         
         // 使用 G6 内置的 Louvain 社区检测算法
-        const communities = G6.Algorithm.LOUVAIN(data);
+        const communities = G6.Util.louvain(data);
         
         // 统计社区信息
         const communityCount = Object.keys(communities).length;
@@ -322,7 +322,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     },
 
-    // 路径分析 - 使用 G6 内置的 SHORTEST_PATH 算法
+    // 路径分析 - 使用 G6 内置的 findShortestPath 算法
     analyzePaths(graph) {
         const data = {
             nodes: graph.save().nodes,
@@ -336,7 +336,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 使用 G6 内置的最短路径算法
         data.nodes.forEach((source, i) => {
-            const shortestPaths = G6.Algorithm.SHORTEST_PATH(data, source.id);
+            const shortestPaths = G6.Util.findShortestPath(data, source.id);
             
             data.nodes.forEach((target, j) => {
                 if (i < j) {
