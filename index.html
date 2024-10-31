@@ -96,139 +96,140 @@
     </div>
 
     <div class="right-panel">
-        <div class="panel-title">操作面板</div>
-        <div class="control-item">
-            <button class="control-button" onclick="zoomIn()">放大</button>
-            <button class="control-button" onclick="zoomOut()">缩小</button>
-            <button class="control-button" onclick="resetZoom()">重置缩放</button>
-        </div>
-        <div class="control-item">
-            <button class="control-button" onclick="fitView()">适应画布</button>
-            <button class="control-button" onclick="toggleNodeLabels()">显示/隐藏标签</button>
-        </div>
-        <div class="control-item">
-            <div class="info-label">节点大小</div>
-            <input type="range" min="10" max="50" value="20" 
-                   onchange="updateNodeSize(this.value)" style="width: 100%;">
-        </div>
-        <div class="control-item">
-            <div class="info-label">线粗细</div>
-            <input type="range" min="1" max="10" value="2" 
-                   onchange="updateEdgeWidth(this.value)" style="width: 100%;">
-        </div>
-        <div class="control-item">
-            <div class="info-label">动画效果</div>
-            <button class="control-button" onclick="toggleEdgeAnimation()">边动画效果</button>
-            <button class="control-button" onclick="toggleNodeAnimation()">节点呼吸效果</button>
-        </div>
-        <div class="control-item">
-            <div class="info-label">节点筛选</div>
-            <select id="nodeFilter" onchange="filterNodes()" style="width: 100%; padding: 8px;">
-                <option value="all">显示所有</option>
-                <option value="account">仅账户节点</option>
-                <option value="transaction">仅交易节点</option>
-                <option value="merchant">仅商户节点</option>
-            </select>
-        </div>
-        <div class="control-item">
-            <div class="info-label">布局方式</div>
-            <select id="layoutSelect" onchange="changeLayout()" style="width: 100%; padding: 8px;">
-                <option value="force">力导向布局</option>
-                <option value="circular">环形布局</option>
-                <option value="radial">辐射布局</option>
-                <option value="dagre">层次布局</option>
-                <option value="concentric">同心圆布局</option>
-            </select>
-        </div>
-        <div class="control-item" id="layoutParams">
-            <div class="info-label">布局参数</div>
-            <div id="forceParams" style="display: none;">
-                <input type="range" min="50" max="300" value="100" 
-                       onchange="updateForceDistance(this.value)" style="width: 100%;">
-                <label>链接距离</label>
-            </div>
-        </div>
-        <div class="control-item">
-            <button class="control-button" onclick="exportImage('png')">导出为PNG</button>
-            <button class="control-button" onclick="exportImage('svg')">导出为SVG</button>
-        </div>
-        <div class="control-item">
-            <div class="info-label">主题切换</div>
-            <select id="themeSelect" onchange="changeTheme()" style="width: 100%; padding: 8px;">
-                <option value="default">默认主题</option>
-                <option value="dark">暗黑主题</option>
-                <option value="colorful">多彩主题</option>
-            </select>
-        </div>
-        <div class="control-item">
-            <div class="info-label">边特效</div>
-            <select id="edgeEffect" onchange="changeEdgeEffect()" style="width: 100%; padding: 8px;">
-                <option value="none">无特效</option>
-                <option value="flow">流动效果</option>
-                <option value="glow">发光效果</option>
-            </select>
-        </div>
-        <div class="control-item">
-            <button class="control-button" onclick="toggleStats()">切换性能监控</button>
-        </div>
-        <div class="control-item">
-            <div class="info-label">图算法</div>
-            <select id="algorithmSelect" style="width: 100%; padding: 8px; margin-bottom: 10px;">
-                <option value="centrality">中心度分析</option>
-                <option value="community">社区检测</option>
-                <option value="shortestPath">最短路径</option>
-                <option value="cycle">环路检测</option>
-            </select>
-            <button class="control-button" onclick="runAlgorithm()">运行算法</button>
-        </div>
-        <div id="algorithmParams" class="control-item">
-            <!-- 动态显示不同算法的参数设置 -->
-        </div>
-        <div class="control-item">
-            <div class="panel-title">取证工具</div>
-            <button class="control-button" onclick="addMarker()">添加标记</button>
-            <button class="control-button" onclick="addComment()">添加注释</button>
-            <button class="control-button" onclick="saveEvidence()">保存证据</button>
-            <div id="evidenceList" class="evidence-container"></div>
-        </div>
-
-        <!-- 在 right-panel 中添加高级分析工具 -->
-        <div class="control-item">
-            <div class="panel-title">高级分析</div>
-            <div class="analysis-tools">
-                <button class="control-button" onclick="exportReport()">导出调查报告</button>
-                <button class="control-button" onclick="saveSnapshot()">保存快照</button>
-                <button class="control-button" onclick="loadSnapshot()">加载快照</button>
-                
-                <div class="filter-section">
-                    <div class="info-label">多维度过滤</div>
-                    <div class="filter-group">
-                        <label>时间范围</label>
-                        <input type="date" id="startDate" onchange="applyFilters()">
-                        <input type="date" id="endDate" onchange="applyFilters()">
-                    </div>
-                    <div class="filter-group">
-                        <label>交易金额</label>
-                        <input type="number" id="minAmount" placeholder="最小金额" onchange="applyFilters()">
-                        <input type="number" id="maxAmount" placeholder="最大金额" onchange="applyFilters()">
-                    </div>
-                    <div class="filter-group">
-                        <label>风险等级</label>
-                        <select id="riskLevel" onchange="applyFilters()">
-                            <option value="all">全部</option>
-                            <option value="high">高风险</option>
-                            <option value="medium">中风险</option>
-                            <option value="low">低风险</option>
-                        </select>
+        <div class="panel-group">
+            <!-- 1. 基础操作 -->
+            <div class="panel-section">
+                <div class="section-header" onclick="toggleSection('basic-controls')">
+                    <span class="section-title">基础操作</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div id="basic-controls" class="section-content">
+                    <div class="control-item">
+                        <button class="control-button" onclick="zoomIn()">放大</button>
+                        <button class="control-button" onclick="zoomOut()">缩小</button>
+                        <button class="control-button" onclick="resetZoom()">重置缩放</button>
+                        <button class="control-button" onclick="fitView()">适应画布</button>
                     </div>
                 </div>
+            </div>
 
-                <div class="relationship-analysis">
-                    <div class="info-label">关系分析</div>
-                    <button class="control-button" onclick="findGroups()">团伙发现</button>
-                    <button class="control-button" onclick="analyzeRelationPath()">关系路径分析</button>
-                    <div id="relationshipResults" class="result-content">
-                        <!-- 关系分析结果将在这里显示 -->
+            <!-- 2. 视图设置 -->
+            <div class="panel-section">
+                <div class="section-header" onclick="toggleSection('view-settings')">
+                    <span class="section-title">视图设置</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div id="view-settings" class="section-content">
+                    <div class="control-item">
+                        <div class="info-label">节点大小</div>
+                        <input type="range" min="10" max="50" value="20" onchange="updateNodeSize(this.value)">
+                        
+                        <div class="info-label">线粗细</div>
+                        <input type="range" min="1" max="10" value="2" onchange="updateEdgeWidth(this.value)">
+                        
+                        <button class="control-button" onclick="toggleNodeLabels()">显示/隐藏标签</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. 布局设置 -->
+            <div class="panel-section">
+                <div class="section-header" onclick="toggleSection('layout-settings')">
+                    <span class="section-title">布局设置</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div id="layout-settings" class="section-content">
+                    <div class="control-item">
+                        <select id="layoutSelect" onchange="changeLayout()">
+                            <option value="force">力导向布局</option>
+                            <option value="circular">环形布局</option>
+                            <option value="radial">辐射布局</option>
+                            <option value="dagre">层次布局</option>
+                            <option value="concentric">同心圆布局</option>
+                        </select>
+                        <div id="layoutParams"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. 分析工具 -->
+            <div class="panel-section">
+                <div class="section-header" onclick="toggleSection('analysis-tools')">
+                    <span class="section-title">分析工具</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div id="analysis-tools" class="section-content">
+                    <div class="control-item">
+                        <select id="algorithmSelect">
+                            <option value="centrality">中心度分析</option>
+                            <option value="community">社区检测</option>
+                            <option value="shortestPath">最短路径</option>
+                            <option value="cycle">环路检测</option>
+                        </select>
+                        <button class="control-button" onclick="runAlgorithm()">运行算法</button>
+                        <div id="algorithmParams"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. 取证工具 -->
+            <div class="panel-section">
+                <div class="section-header" onclick="toggleSection('forensics-tools')">
+                    <span class="section-title">取证工具</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div id="forensics-tools" class="section-content">
+                    <div class="control-item">
+                        <button class="control-button" onclick="addMarker()">添加标记</button>
+                        <button class="control-button" onclick="addComment()">添加注释</button>
+                        <button class="control-button" onclick="saveEvidence()">保存证据</button>
+                        <div id="evidenceList" class="evidence-container"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. 筛选工具 -->
+            <div class="panel-section">
+                <div class="section-header" onclick="toggleSection('filter-tools')">
+                    <span class="section-title">筛选工具</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div id="filter-tools" class="section-content">
+                    <div class="filter-section">
+                        <div class="filter-group">
+                            <label>时间范围</label>
+                            <input type="date" id="startDate" onchange="applyFilters()">
+                            <input type="date" id="endDate" onchange="applyFilters()">
+                        </div>
+                        <div class="filter-group">
+                            <label>交易金额</label>
+                            <input type="number" id="minAmount" placeholder="最小金额">
+                            <input type="number" id="maxAmount" placeholder="最大金额">
+                        </div>
+                        <div class="filter-group">
+                            <label>风险等级</label>
+                            <select id="riskLevel" onchange="applyFilters()">
+                                <option value="all">全部</option>
+                                <option value="high">高风险</option>
+                                <option value="medium">中风险</option>
+                                <option value="low">低风险</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. 导出工具 -->
+            <div class="panel-section">
+                <div class="section-header" onclick="toggleSection('export-tools')">
+                    <span class="section-title">导出工具</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div id="export-tools" class="section-content">
+                    <div class="control-item">
+                        <button class="control-button" onclick="exportImage('png')">导出PNG</button>
+                        <button class="control-button" onclick="exportImage('svg')">导出SVG</button>
+                        <button class="control-button" onclick="exportReport()">导出报告</button>
                     </div>
                 </div>
             </div>

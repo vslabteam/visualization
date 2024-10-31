@@ -368,4 +368,67 @@ input[type="range"] {
     0% { stroke-width: 3px; }
     50% { stroke-width: 5px; }
     100% { stroke-width: 3px; }
+}
+
+/* 面板分组样式 */
+.panel-section {
+    margin-bottom: 10px;
+    background: white;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.section-header {
+    padding: 12px 15px;
+    background: #f7f7f7;
+    border-radius: 4px 4px 0 0;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.3s;
+}
+
+.section-header:hover {
+    background: #f0f0f0;
+}
+
+.section-title {
+    font-weight: bold;
+    color: #333;
+}
+
+.toggle-icon {
+    transition: transform 0.3s;
+}
+
+.section-content {
+    padding: 15px;
+    display: none;
+}
+
+.section-content.active {
+    display: block;
+}
+
+/* 折叠状态图标 */
+.panel-section.collapsed .toggle-icon {
+    transform: rotate(-90deg);
+}
+
+/* 暗色主题适配 */
+[data-theme="dark"] .panel-section {
+    background: #2a2a2a;
+}
+
+[data-theme="dark"] .section-header {
+    background: #333;
+}
+
+[data-theme="dark"] .section-header:hover {
+    background: #404040;
+}
+
+[data-theme="dark"] .section-title {
+    color: #fff;
 } 

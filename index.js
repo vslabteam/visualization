@@ -1163,7 +1163,7 @@ document.addEventListener('DOMContentLoaded', function() {
       loadingTip.style.display = 'none';
     };
 
-    // 优化渲染性能
+    // 优���渲染性能
     const optimizeRendering = () => {
       // 使用 GPU 加速
       graph.get('canvas').set('enableCSSTransforms', true);
@@ -1487,7 +1487,7 @@ document.addEventListener('DOMContentLoaded', function() {
       );
     },
 
-    // 收集证据
+    // ��集证据
     collectEvidence() {
       return {
         markers: ForensicsTools.evidence.markers,
@@ -6075,4 +6075,40 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 绑定到全局
   window.exportEvidenceChain = () => EvidenceExporter.exportEvidenceChain();
+
+  // 面板折叠控制
+  function toggleSection(sectionId) {
+    const section = document.getElementById(sectionId);
+    const header = section.previousElementSibling;
+    const parent = section.parentElement;
+    
+    // 切换显示状态
+    section.classList.toggle('active');
+    parent.classList.toggle('collapsed');
+    
+    // 保存状态到本地存储
+    const sectionStates = JSON.parse(localStorage.getItem('sectionStates') || '{}');
+    sectionStates[sectionId] = section.classList.contains('active');
+    localStorage.setItem('sectionStates', JSON.stringify(sectionStates));
+  }
+
+  // 初始化面板状态
+  function initializePanelStates() {
+    const sectionStates = JSON.parse(localStorage.getItem('sectionStates') || '{}');
+    
+    Object.entries(sectionStates).forEach(([sectionId, isActive]) => {
+      const section = document.getElementById(sectionId);
+      if (section) {
+        if (isActive) {
+          section.classList.add('active');
+        } else {
+          section.classList.remove('active');
+          section.parentElement.classList.add('collapsed');
+        }
+      }
+    });
+  }
+
+  // 在页面加载时初始化面板状态
+  document.addEventListener('DOMContentLoaded', initializePanelStates);
 }); 
