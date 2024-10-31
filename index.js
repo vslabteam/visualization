@@ -1060,17 +1060,21 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   };
 
-  // 添加框选功能
+  // 添加框选功能 - 替代方案
   const enableLasso = () => {
-    const lasso = new G6.Lasso({
-      selectedState: 'selected',
-      onSelect: (nodes, edges) => {
-        console.log('框选的节点:', nodes);
-        console.log('框选的边:', edges);
+    // 添加框选模式
+    graph.addBehaviors({
+      'drag-canvas': true,
+      'zoom-canvas': true,
+      'lasso-select': {
+        selectedState: 'selected',
+        trigger: 'shift',  // 按住 shift 键进行框选
+        onSelect: (nodes, edges) => {
+          console.log('框选的节点:', nodes);
+          console.log('框选的边:', edges);
+        }
       }
-    });
-    
-    graph.addPlugin(lasso);
+    }, 'default');
   };
 
   // 添加缩略图
@@ -1565,7 +1569,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <body>
             <h1>欺诈分析报告</h1>
             <div class="metadata">
-              <p>���成时间：${report.timestamp}</p>
+              <p>成时间：${report.timestamp}</p>
               <p>分析人员：${report.metadata.investigator}</p>
               <p>案编号：${report.metadata.caseId}</p>
             </div>
@@ -2026,7 +2030,7 @@ document.addEventListener('DOMContentLoaded', function() {
         labels: distribution.map((_, i) => 
           `${(min + i * bucketSize).toFixed(2)}-${(min + (i + 1) * bucketSize).toFixed(2)}`
         ),
-        title: '交易金额分布'
+        title: '交易金���分布'
       };
     },
 
@@ -3152,7 +3156,7 @@ document.addEventListener('DOMContentLoaded', function() {
       info.className = 'path-info';
       info.innerHTML = `
         <h3>路径 ${index + 1}</h3>
-        <div>��径长度: ${path.length - 1} 步</div>
+        <div>径长度: ${path.length - 1} 步</div>
         <div>节点数量: ${path.length}</div>
         <div class="path-details">
           ${this.renderPathDetails(path)}
@@ -3171,7 +3175,7 @@ document.addEventListener('DOMContentLoaded', function() {
   window.findGroups = () => RelationshipAnalysis.findGroups();
   window.analyzeRelationPath = () => RelationshipAnalysis.analyzeRelationPath();
 
-  // 取证工具模块
+  // 取证工模块
   const ForensicsTools = {
     evidence: {
       markers: [],
@@ -3449,7 +3453,7 @@ document.addEventListener('DOMContentLoaded', function() {
       this.filterDataByTime(this.currentTime);
     },
 
-    // 更新时间显示
+    // 更时间显示
     updateTimeDisplay() {
       document.getElementById('currentTime').textContent = 
         this.currentTime.toLocaleString();
