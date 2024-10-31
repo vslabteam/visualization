@@ -2604,10 +2604,11 @@ document.addEventListener('DOMContentLoaded', function() {
         degree: edges.length,
         inDegree: edges.filter(e => e.target === node.id).length,
         outDegree: edges.filter(e => e.source === node.id).length,
-        transactionAmount: edges.reduce((sum, e) => sum + (e.amount || 0),
+        transactionAmount: edges.reduce((sum, e) => sum + (e.amount || 0), 0), // 加上缺少的右括号和逗号
         transactionFrequency: this.calculateTransactionFrequency(edges),
         riskScore: this.calculateNodeRiskScore(node, edges)
       };
+      
     },
 
     // 计算交易频率
