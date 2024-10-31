@@ -10,6 +10,10 @@ export const PanelManager = {
     this.initializePanelStates();
     this.bindEvents();
     this.setupSectionToggles();
+    
+    // 添加全局方法
+    window.toggleSection = (sectionId) => this.toggleSection(sectionId);
+    
     EventBus.emit('panels:initialized');
   },
 
@@ -31,11 +35,12 @@ export const PanelManager = {
 
     const header = section.previousElementSibling;
     const icon = header.querySelector('.toggle-icon');
+    const content = section.querySelector('.section-content') || section;
     
-    section.classList.toggle('collapsed');
+    content.classList.toggle('collapsed');
     
     if (icon) {
-      icon.textContent = section.classList.contains('collapsed') ? '▶' : '▼';
+      icon.textContent = content.classList.contains('collapsed') ? '▶' : '▼';
     }
 
     // 保存状态到本地存储
@@ -43,18 +48,16 @@ export const PanelManager = {
     
     EventBus.emit('section:toggled', {
       id: sectionId,
-      collapsed: section.classList.contains('collapsed')
+      collapsed: content.classList.contains('collapsed')
     });
   },
 
   // 保存所有区域状态
   saveSectionStates() {
     const states = {};
-    document.querySelectorAll('[data-section-toggle]').forEach(header => {
-      const sectionId = header.getAttribute('data-section-toggle');
-      const section = document.getElementById(sectionId);
-      if (section) {
-        states[sectionId] = !section.classList.contains('collapsed');
+    document.querySelectorAll('.section-content, [id$="Section"]').forEach(section => {
+      if (section.id) {
+        states[section.id] = !section.classList.contains('collapsed');
       }
     });
     localStorage.setItem('sectionStates', JSON.stringify(states));
