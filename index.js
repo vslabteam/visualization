@@ -1,3 +1,25 @@
+// 在文件开头添加 toggleSection 函数的定义
+window.toggleSection = function(sectionId) {
+  const section = document.getElementById(sectionId);
+  if (!section) return;
+  
+  const header = section.previousElementSibling;
+  const icon = header.querySelector('.toggle-icon');
+  
+  // 切换折叠状态
+  section.classList.toggle('collapsed');
+  
+  // 更新图标
+  if (icon) {
+    icon.textContent = section.classList.contains('collapsed') ? '▶' : '▼';
+  }
+  
+  // 保存状态到本地存储
+  const sectionStates = JSON.parse(localStorage.getItem('sectionStates') || '{}');
+  sectionStates[sectionId] = !section.classList.contains('collapsed');
+  localStorage.setItem('sectionStates', JSON.stringify(sectionStates));
+};
+
 document.addEventListener('DOMContentLoaded', function() {
   // 检查 G6 是否正确加载
   if (typeof G6 === 'undefined') {
@@ -484,6 +506,7 @@ document.addEventListener('DOMContentLoaded', function() {
           const newCluster = {
             id: `cluster_${Date.now()}`,
             nodes: [...clusters[i].nodes, ...clusters[j].nodes],
+          };
           clusters.splice(j, 1);
           clusters.splice(i, 1, newCluster);
         }
@@ -1243,7 +1266,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 异常检测模块
   const AnomalyDetection = {
-    // 检测异常交易模式
+    // 检测常交易模式
     detectAnomalies() {
       const data = graph.save();
       const anomalies = [];
@@ -2561,7 +2584,7 @@ document.addEventListener('DOMContentLoaded', function() {
         degree: edges.length,
         inDegree: edges.filter(e => e.target === node.id).length,
         outDegree: edges.filter(e => e.source === node.id).length,
-        transactionAmount: edges.reduce((sum, e) => sum + (e.amount || 0), 0),
+        transactionAmount: edges.reduce((sum, e) => sum + (e.amount || 0), 0), 0), 0),
         transactionFrequency: this.calculateTransactionFrequency(edges),
         riskScore: this.calculateNodeRiskScore(node, edges)
       };
@@ -3688,7 +3711,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     },
 
-    // 获取边���式
+    // 获取边式
     getEdgeStyle(effectType) {
       const baseStyle = {
         stroke: '#e2e2e2',
@@ -5047,7 +5070,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 数据验证
     validateData(data) {
       if (!data.nodes || !Array.isArray(data.nodes)) {
-        throw new Error('��效的节点数据');
+        throw new Error('无效的节点数据');
       }
       if (!data.edges || !Array.isArray(data.edges)) {
         throw new Error('无效的边数据');

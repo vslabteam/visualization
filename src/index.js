@@ -8,6 +8,15 @@ import { ThemeManager } from './visualization/theme';
 import { LayoutManager } from './visualization/layout';
 import { ChartVisualization } from './visualization/charts';
 
+// 添加toggleSection函数定义
+function toggleSection(sectionId) {
+    const section = document.getElementById(sectionId);
+    if (section) {
+        const isHidden = section.style.display === 'none';
+        section.style.display = isHidden ? 'block' : 'none';
+    }
+}
+
 // 初始化应用
 document.addEventListener('DOMContentLoaded', function() {
   // 初始化各个管理器
