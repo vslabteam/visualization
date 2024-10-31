@@ -10,6 +10,15 @@
 </head>
 <body>
     <div class="left-panel">
+        <div class="search-container">
+            <div class="panel-title">节点搜索</div>
+            <div class="search-box">
+                <input type="text" id="nodeSearch" placeholder="输入节点ID或属性搜索...">
+                <button class="search-button" onclick="searchNodes()">搜索</button>
+            </div>
+            <div class="search-results" id="searchResults"></div>
+        </div>
+
         <div class="panel-title">图表信息</div>
         <div class="stats-container">
             <div class="info-item">
@@ -62,10 +71,28 @@
                 </div>
             </div>
         </div>
+
+        <!-- 在 left-panel 中添加异常检测面板 -->
+        <div class="panel-title">异常检测</div>
+        <div class="analysis-panel">
+            <div class="detection-results">
+                <div class="info-label">异常交易模式</div>
+                <div id="anomalyList" class="result-content">
+                    <!-- 异常检测结果将在这里动态显示 -->
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="center-panel">
         <div id="container"></div>
+        <div class="timeline-container">
+            <div class="timeline-controls">
+                <button onclick="playTimeline()">播放</button>
+                <input type="range" id="timelineSlider" min="0" max="100" value="0">
+                <span id="currentTime">2024-01-01</span>
+            </div>
+        </div>
     </div>
 
     <div class="right-panel">
@@ -156,6 +183,55 @@
         </div>
         <div id="algorithmParams" class="control-item">
             <!-- 动态显示不同算法的参数设置 -->
+        </div>
+        <div class="control-item">
+            <div class="panel-title">取证工具</div>
+            <button class="control-button" onclick="addMarker()">添加标记</button>
+            <button class="control-button" onclick="addComment()">添加注释</button>
+            <button class="control-button" onclick="saveEvidence()">保存证据</button>
+            <div id="evidenceList" class="evidence-container"></div>
+        </div>
+
+        <!-- 在 right-panel 中添加高级分析工具 -->
+        <div class="control-item">
+            <div class="panel-title">高级分析</div>
+            <div class="analysis-tools">
+                <button class="control-button" onclick="exportReport()">导出调查报告</button>
+                <button class="control-button" onclick="saveSnapshot()">保存快照</button>
+                <button class="control-button" onclick="loadSnapshot()">加载快照</button>
+                
+                <div class="filter-section">
+                    <div class="info-label">多维度过滤</div>
+                    <div class="filter-group">
+                        <label>时间范围</label>
+                        <input type="date" id="startDate" onchange="applyFilters()">
+                        <input type="date" id="endDate" onchange="applyFilters()">
+                    </div>
+                    <div class="filter-group">
+                        <label>交易金额</label>
+                        <input type="number" id="minAmount" placeholder="最小金额" onchange="applyFilters()">
+                        <input type="number" id="maxAmount" placeholder="最大金额" onchange="applyFilters()">
+                    </div>
+                    <div class="filter-group">
+                        <label>风险等级</label>
+                        <select id="riskLevel" onchange="applyFilters()">
+                            <option value="all">全部</option>
+                            <option value="high">高风险</option>
+                            <option value="medium">中风险</option>
+                            <option value="low">低风险</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="relationship-analysis">
+                    <div class="info-label">关系分析</div>
+                    <button class="control-button" onclick="findGroups()">团伙发现</button>
+                    <button class="control-button" onclick="analyzeRelationPath()">关系路径分析</button>
+                    <div id="relationshipResults" class="result-content">
+                        <!-- 关系分析结果将在这里显示 -->
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
