@@ -93,41 +93,47 @@ document.addEventListener('DOMContentLoaded', function() {
     console.error('注册节点时出错:', error);
   }
 
-  // 创建图实例
+  // 初始化图实例
+  const container = document.getElementById('container');
+  if (!container) {
+    console.error('找不到容器元素');
+    return;
+  }
+
   const graph = new G6.Graph({
     container: 'container',
-    width: document.querySelector('.center-panel').offsetWidth,
-    height: document.querySelector('.center-panel').offsetHeight,
+    width: container.offsetWidth,
+    height: container.offsetHeight,
+    modes: {
+      default: ['drag-canvas', 'zoom-canvas', 'drag-node']
+    },
     defaultNode: {
-      type: 'default',
-      size: 40,
+      type: 'circle',
+      size: 30,
+      style: {
+        fill: '#91d5ff',
+        stroke: '#40a9ff',
+        lineWidth: 2
+      },
       labelCfg: {
         position: 'bottom',
         offset: 10,
         style: {
           fill: '#333',
-          fontSize: 12,
-        },
-      },
+          fontSize: 12
+        }
+      }
     },
     defaultEdge: {
       type: 'line',
       style: {
-        stroke: '#e2e2e2',
+        stroke: '#91d5ff',
         lineWidth: 1,
-        endArrow: true,
-      },
+        endArrow: true
+      }
     },
-    modes: {
-      default: ['drag-canvas', 'zoom-canvas', 'drag-node'],
-    },
-    layout: {
-      type: 'force',
-      preventOverlap: true,
-      linkDistance: 100,
-      nodeStrength: -50,
-      edgeStrength: 0.1
-    }
+    fitView: true,
+    animate: true
   });
 
   // 定义控制函数
@@ -665,7 +671,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return this.filterSignificantCycles(cycles);
     },
 
-    // 分析环路类型
+    // 分环路类型
     analyzeCycleType(cycle, data) {
       const nodeTypes = cycle.map(nodeId => {
         const node = data.nodes.find(n => n.id === nodeId);
@@ -787,7 +793,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 过滤重要环路
     filterSignificantCycles(cycles) {
       // 按风险分数排序
-      cycles.sort((a, b) => b.risk - a.risk);
+      cycles.sort((a, b) => b.risk - a);
 
       // 移除重复或相似的环路
       const filteredCycles = [];
@@ -1098,7 +1104,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const loadingTip = createLoadingTip();
     const worker = new Worker('dataWorker.js');
 
-    // 处理 Worker 消息
+    // 处 Worker 消息
     worker.onmessage = function(e) {
       const { type, data, meta } = e.data;
 
@@ -1163,7 +1169,7 @@ document.addEventListener('DOMContentLoaded', function() {
       loadingTip.style.display = 'none';
     };
 
-    // 优���渲染性能
+    // 优渲染性能
     const optimizeRendering = () => {
       // 使用 GPU 加速
       graph.get('canvas').set('enableCSSTransforms', true);
@@ -1487,7 +1493,7 @@ document.addEventListener('DOMContentLoaded', function() {
       );
     },
 
-    // ��集证据
+    // 集证据
     collectEvidence() {
       return {
         markers: ForensicsTools.evidence.markers,
@@ -2419,7 +2425,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return true;
     },
 
-    // 计算节点风险等级
+    // 计算节点风等级
     calculateNodeRisk(node) {
       // 实现节点风险评估逻辑
       let risk = 0;
@@ -2504,7 +2510,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return this.analyzeGroupCharacteristics(validatedGroups, graphData);
     },
 
-    // 改进的 DBSCAN 算法
+    // 改进 DBSCAN 算法
     improvedDBSCAN(graphData) {
       const eps = 0.3; // 邻域半径
       const minPts = 3; // 最小点数
@@ -3682,7 +3688,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     },
 
-    // 获取边样式
+    // 获取边���式
     getEdgeStyle(effectType) {
       const baseStyle = {
         stroke: '#e2e2e2',
@@ -3768,7 +3774,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     },
 
-    // 切换边动画
+    // 切换动画
     toggleEdgeAnimation() {
       this.edgeAnimationEnabled = !this.edgeAnimationEnabled;
       
@@ -4261,7 +4267,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const node = graph.findById(nodeId);
     if (!node) return;
 
-    // 隐藏节点及其关联边
+    // 隐藏点及其关联
     graph.hideItem(node);
     graph.getEdges().forEach(edge => {
       const model = edge.getModel();
@@ -5041,7 +5047,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 数据验证
     validateData(data) {
       if (!data.nodes || !Array.isArray(data.nodes)) {
-        throw new Error('无效的节点数据');
+        throw new Error('��效的节点数据');
       }
       if (!data.edges || !Array.isArray(data.edges)) {
         throw new Error('无效的边数据');
@@ -6111,4 +6117,54 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 在页面加载时初始化面板状态
   document.addEventListener('DOMContentLoaded', initializePanelStates);
+
+  // 初始化面板控制
+  document.addEventListener('DOMContentLoaded', function() {
+    // 使用事件委托处理所有面板的点击事件
+    document.querySelector('.right-panel').addEventListener('click', function(e) {
+        const header = e.target.closest('.section-header');
+        if (header) {
+            const sectionId = header.getAttribute('data-section');
+            const content = document.getElementById(sectionId);
+            if (content) {
+                content.classList.toggle('collapsed');
+                const icon = header.querySelector('.toggle-icon');
+                if (icon) {
+                    icon.textContent = content.classList.contains('collapsed') ? '▶' : '▼';
+                }
+                
+                // 保存状态到本地存储
+                const sectionStates = JSON.parse(localStorage.getItem('sectionStates') || '{}');
+                sectionStates[sectionId] = !content.classList.contains('collapsed');
+                localStorage.setItem('sectionStates', JSON.stringify(sectionStates));
+            }
+        }
+    });
+  });
+
+  // 在图实例创建后添加
+  graph.on('afterrender', () => {
+    console.log('图渲染完成');
+    console.log('节点数量:', graph.getNodes().length);
+    console.log('边数量:', graph.getEdges().length);
+  });
+
+  // 监听容器大小
+  const resizeObserver = new ResizeObserver(entries => {
+    for (let entry of entries) {
+      const { width, height } = entry.contentRect;
+      console.log('容器大小变化:', width, height);
+      graph.changeSize(width, height);
+    }
+  });
+
+  resizeObserver.observe(container);
+
+  // 在数据加载前显示
+  container.innerHTML = `
+    <div class="loading-container">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">数据加载中...</div>
+    </div>
+  `;
 }); 
