@@ -478,8 +478,6 @@ document.addEventListener('DOMContentLoaded', function() {
           const newCluster = {
             id: `cluster_${Date.now()}`,
             nodes: [...clusters[i].nodes, ...clusters[j].nodes],
-            distance: minDistance
-          };
           clusters.splice(j, 1);
           clusters.splice(i, 1, newCluster);
         }
@@ -544,7 +542,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const subgraphs = [];
       const visited = new Set();
 
-      // 从每个未访问的节点开始扩展子图
+      // 从未访问的节点开始扩展子图
       data.nodes.forEach(startNode => {
         if (visited.has(startNode.id)) return;
 
@@ -628,15 +626,15 @@ document.addEventListener('DOMContentLoaded', function() {
       const visited = new Set();
       const recursionStack = new Set();
 
-      // 深度优先搜索检测环
       const dfs = (nodeId, path = []) => {
         if (recursionStack.has(nodeId)) {
           const cycleStart = path.indexOf(nodeId);
           if (cycleStart !== -1) {
+            const cyclePath = path.slice(cycleStart);
             cycles.push({
-              path: path.slice(cycleStart),
-              type: this.analyzeCycleType(path.slice(cycleStart),
-              risk: this.calculateCycleRisk(path.slice(cycleStart), data)
+              path: cyclePath,
+              type: this.analyzeCycleType(cyclePath, data),
+              risk: this.calculateCycleRisk(cyclePath, data)
             });
           }
           return;
@@ -930,7 +928,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     } catch (error) {
       console.error('算法运行错误:', error);
-      alert('算法运行出错，请查看控制台了解详情');
+      alert('算法行出错，请查看控制台了解详情');
     } finally {
       button.disabled = false;
       button.textContent = '运行算法';
@@ -1093,7 +1091,7 @@ document.addEventListener('DOMContentLoaded', function() {
     return loadingDiv;
   };
 
-  // 数据加载和渲染优化
+  // 数据加载和染优化
   const optimizeDataRendering = () => {
     let currentChunk = 0;
     let totalChunks = 0;
@@ -1125,7 +1123,7 @@ document.addEventListener('DOMContentLoaded', function() {
           currentChunk++;
           const { nodes, edges } = data;
           
-          // 批量添加新节点和边
+          // 批量加新节点和
           graph.addItems('node', nodes);
           graph.addItems('edge', edges);
           
@@ -1291,7 +1289,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (stack.has(nodeId)) {
           const cycleStart = path.indexOf(nodeId);
           if (cycleStart !== -1) {
-            cycles.push(path.slice(cycleStart));
+            const cyclePath = path.slice(cycleStart);
+            cycles.push({
+              path: cyclePath,
+              type: this.analyzeCycleType(cyclePath, data),
+              risk: this.calculateCycleRisk(cyclePath, data)
+            });
           }
           return;
         }
@@ -1635,7 +1638,7 @@ document.addEventListener('DOMContentLoaded', function() {
             ${this.renderMarkers(evidence.markers)}
           </div>
           <div class="comments-section">
-            <h3>注释记录 (${evidence.comments.length})</h3>
+            <h3>注释记 (${evidence.comments.length})</h3>
             ${this.renderComments(evidence.comments)}
           </div>
           <div class="analysis-section">
@@ -2097,130 +2100,361 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 快照管理模块
   const SnapshotManager = {
-    snapshots: [],
-
-    // 保存当前视图状态
+    // 保存快照
     saveSnapshot() {
       const snapshot = {
         id: Date.now(),
         timestamp: new Date().toISOString(),
+        name: prompt('请输入快照名称：', `快照 ${new Date().toLocaleString()}`),
         data: graph.save(),
         view: {
           zoom: graph.getZoom(),
           center: graph.getCenter()
         },
-        filters: this.getCurrentFilters()
+        filters: MultiDimensionalFilter.getFilterValues(),
+        layout: document.getElementById('layoutSelect').value,
+        highlights: this.captureHighlights(),
+        metadata: {
+          nodeCount: graph.getNodes().length,
+          edgeCount: graph.getEdges().length,
+          creator: localStorage.getItem('username') || 'unknown'
+        }
       };
 
-      this.snapshots.push(snapshot);
-      localStorage.setItem('graphSnapshots', JSON.stringify(this.snapshots));
+      // 保存到本地存储
+      this.persistSnapshot(snapshot);
+      this.updateSnapshotList();
       return snapshot.id;
     },
 
-    // 加载快照
-    loadSnapshot(snapshotId) {
-      const snapshot = this.snapshots.find(s => s.id === snapshotId);
-      if (snapshot) {
-        graph.changeData(snapshot.data);
-        graph.zoomTo(snapshot.view.zoom);
-        graph.moveTo(snapshot.view.center.x, snapshot.view.center.y);
-        this.applyFilters(snapshot.filters);
-      }
-    },
-
-    // 获取当前过滤器状态
-    getCurrentFilters() {
-      return {
-        timeRange: {
-          start: document.getElementById('startDate').value,
-          end: document.getElementById('endDate').value
-        },
-        amount: {
-          min: document.getElementById('minAmount').value,
-          max: document.getElementById('maxAmount').value
-        },
-        riskLevel: document.getElementById('riskLevel').value,
-        nodeType: document.getElementById('nodeFilter').value,
-        layout: document.getElementById('layoutSelect').value
-      };
-    },
-
-    // 应用过滤器状态
-    applyFilters(filters) {
-      if (!filters) return;
+    // 持久化快照
+    persistSnapshot(snapshot) {
+      const snapshots = this.loadSnapshots();
+      snapshots.push(snapshot);
       
-      // 恢复过滤器UI状态
-      document.getElementById('startDate').value = filters.timeRange.start;
-      document.getElementById('endDate').value = filters.timeRange.end;
-      document.getElementById('minAmount').value = filters.amount.min;
-      document.getElementById('maxAmount').value = filters.amount.max;
-      document.getElementById('riskLevel').value = filters.riskLevel;
-      document.getElementById('nodeFilter').value = filters.nodeType;
-      document.getElementById('layoutSelect').value = filters.layout;
+      // 限制快照数量
+      if (snapshots.length > 50) {
+        snapshots.shift();
+      }
 
-      // 应用过滤器
-      MultiDimensionalFilter.applyFilters();
+      localStorage.setItem('graphSnapshots', JSON.stringify(snapshots));
+      
+      // 同时保存到 IndexedDB
+      this.saveToIndexedDB(snapshot);
     },
 
-    // 显示快照列表
-    showSnapshotList() {
-      const snapshotListHtml = this.snapshots.map(snapshot => `
-        <div class="snapshot-item">
-          <div class="snapshot-time">${new Date(snapshot.timestamp).toLocaleString()}</div>
-          <button onclick="SnapshotManager.loadSnapshot(${snapshot.id})">加载</button>
-          <button onclick="SnapshotManager.deleteSnapshot(${snapshot.id})">删除</button>
-        </div>
-      `).join('');
-
-      const dialog = document.createElement('div');
-      dialog.className = 'snapshot-dialog';
-      dialog.innerHTML = `
-        <div class="snapshot-dialog-content">
-          <h3>快照列表</h3>
-          <div class="snapshot-list">${snapshotListHtml}</div>
-          <button onclick="this.parentElement.parentElement.remove()">关闭</button>
-        </div>
-      `;
-      document.body.appendChild(dialog);
+    // 保存到 IndexedDB
+    async saveToIndexedDB(snapshot) {
+      const db = await this.openDB();
+      const transaction = db.transaction(['snapshots'], 'readwrite');
+      const store = transaction.objectStore('snapshots');
+      await store.put(snapshot);
     },
 
-    // 删除快照
-    deleteSnapshot(snapshotId) {
-      this.snapshots = this.snapshots.filter(s => s.id !== snapshotId);
-      localStorage.setItem('graphSnapshots', JSON.stringify(this.snapshots));
-      this.showSnapshotList(); // 刷新快照列表
-    }
-  };
-
-  // 多维度过滤器
-  const MultiDimensionalFilter = {
-    // 应用所有过滤条件
-    applyFilters() {
-      const filters = {
-        timeRange: {
-          start: document.getElementById('startDate').value,
-          end: document.getElementById('endDate').value
-        },
-        amount: {
-          min: document.getElementById('minAmount').value,
-          max: document.getElementById('maxAmount').value
-        },
-        riskLevel: document.getElementById('riskLevel').value
-      };
-
-      // 发送到 Worker 进行过滤
-      worker.postMessage({
-        type: 'filterData',
-        params: filters
+    // 打开 IndexedDB
+    openDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open('GraphAnalysis', 1);
+        
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => resolve(request.result);
+        
+        request.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains('snapshots')) {
+            db.createObjectStore('snapshots', { keyPath: 'id' });
+          }
+        };
       });
     },
 
-    // 处理过滤后的数据
-    handleFilteredData(filteredData) {
-      graph.changeData(filteredData);
-      graph.fitView();
+    // 加载快照
+    async loadSnapshot(snapshotId) {
+      const snapshot = await this.getSnapshot(snapshotId);
+      if (!snapshot) return;
+
+      // 恢复图数据
+        graph.changeData(snapshot.data);
+      
+      // 恢复视图状态
+        graph.zoomTo(snapshot.view.zoom);
+        graph.moveTo(snapshot.view.center.x, snapshot.view.center.y);
+      
+      // 恢复过滤器状态
+      this.restoreFilters(snapshot.filters);
+      
+      // 恢复布局
+      document.getElementById('layoutSelect').value = snapshot.layout;
+      graph.updateLayout({
+        type: snapshot.layout
+      });
+      
+      // 恢复高亮状态
+      this.restoreHighlights(snapshot.highlights);
+    },
+
+    // 获取快照
+    async getSnapshot(snapshotId) {
+      // 先从 IndexedDB 获取
+      try {
+        const db = await this.openDB();
+        const transaction = db.transaction(['snapshots'], 'readonly');
+        const store = transaction.objectStore('snapshots');
+        const snapshot = await store.get(snapshotId);
+        if (snapshot) return snapshot;
+      } catch (error) {
+        console.error('从 IndexedDB 获取照失败:', error);
+      }
+
+      // 回退到 localStorage
+      const snapshots = this.loadSnapshots();
+      return snapshots.find(s => s.id === snapshotId);
+    },
+
+    // 从本地存储加载快照列表
+    loadSnapshots() {
+      try {
+        const snapshots = localStorage.getItem('graphSnapshots');
+        return snapshots ? JSON.parse(snapshots) : [];
+      } catch (error) {
+        console.error('加载快照失败:', error);
+        return [];
+      }
+    },
+
+    // 捕获高亮状态
+    captureHighlights() {
+      const highlights = {
+        nodes: [],
+        edges: []
+      };
+
+      graph.getNodes().forEach(node => {
+        if (node.hasState('selected') || node.hasState('highlighted')) {
+          highlights.nodes.push({
+            id: node.getModel().id,
+            state: node.getStates()
+          });
+        }
+      });
+
+      graph.getEdges().forEach(edge => {
+        if (edge.hasState('selected') || edge.hasState('highlighted')) {
+          highlights.edges.push({
+            id: edge.getModel().id,
+            state: edge.getStates()
+          });
+        }
+      });
+
+      return highlights;
+    },
+
+    // 恢复高亮状态
+    restoreHighlights(highlights) {
+      highlights.nodes.forEach(highlight => {
+        const node = graph.findById(highlight.id);
+        if (node) {
+          highlight.state.forEach(state => {
+            graph.setItemState(node, state, true);
+          });
+        }
+      });
+
+      highlights.edges.forEach(highlight => {
+        const edge = graph.findById(highlight.id);
+        if (edge) {
+          highlight.state.forEach(state => {
+            graph.setItemState(edge, state, true);
+          });
+        }
+      });
+    },
+
+    // 更新快照列表UI
+    updateSnapshotList() {
+      const snapshots = this.loadSnapshots();
+      const container = document.getElementById('snapshotList');
+      if (!container) return;
+
+      container.innerHTML = snapshots.map(snapshot => `
+        <div class="snapshot-item">
+          <div class="snapshot-header">
+            <span class="snapshot-name">${snapshot.name}</span>
+            <span class="snapshot-time">${new Date(snapshot.timestamp).toLocaleString()}</span>
+          </div>
+          <div class="snapshot-meta">
+            节点: ${snapshot.metadata.nodeCount}, 
+            : ${snapshot.metadata.edgeCount}
+          </div>
+          <div class="snapshot-actions">
+          <button onclick="SnapshotManager.loadSnapshot(${snapshot.id})">加载</button>
+          <button onclick="SnapshotManager.deleteSnapshot(${snapshot.id})">删除</button>
+            <button onclick="SnapshotManager.exportSnapshot(${snapshot.id})">导出</button>
+        </div>
+        </div>
+      `).join('');
+    },
+
+    // 删除快照
+    async deleteSnapshot(snapshotId) {
+      // 从 IndexedDB 删除
+      try {
+        const db = await this.openDB();
+        const transaction = db.transaction(['snapshots'], 'readwrite');
+        const store = transaction.objectStore('snapshots');
+        await store.delete(snapshotId);
+      } catch (error) {
+        console.error('从 IndexedDB 删除快照失败:', error);
+      }
+
+      // 从 localStorage 删除
+      const snapshots = this.loadSnapshots().filter(s => s.id !== snapshotId);
+      localStorage.setItem('graphSnapshots', JSON.stringify(snapshots));
+      
+      this.updateSnapshotList();
+    },
+
+    // 导出快照
+    exportSnapshot(snapshotId) {
+      this.getSnapshot(snapshotId).then(snapshot => {
+        const blob = new Blob(
+          [JSON.stringify(snapshot, null, 2)], 
+          { type: 'application/json' }
+        );
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `snapshot-${snapshot.id}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
     }
   };
+
+  // 绑定到全局
+  window.saveSnapshot = () => SnapshotManager.saveSnapshot();
+  window.loadSnapshot = (id) => SnapshotManager.loadSnapshot(id);
+
+  // 多维度过滤器模块
+  const MultiDimensionalFilter = {
+    // 应用过滤器
+    applyFilters() {
+      const filters = this.getFilterValues();
+      const data = graph.save();
+      
+      // 过滤节点
+      const filteredNodes = data.nodes.filter(node => 
+        this.nodeMatchesFilters(node, filters)
+      );
+
+      // 过滤边
+      const filteredEdges = data.edges.filter(edge =>
+        this.edgeMatchesFilters(edge, filters) &&
+        filteredNodes.some(n => n.id === edge.source) &&
+        filteredNodes.some(n => n.id === edge.target)
+      );
+
+      // 更新图显示
+      graph.changeData({
+        nodes: filteredNodes,
+        edges: filteredEdges
+      });
+    },
+
+    // 获取过滤器值
+    getFilterValues() {
+      return {
+        time: {
+          start: new Date(document.getElementById('startDate').value),
+          end: new Date(document.getElementById('endDate').value)
+        },
+        amount: {
+          min: parseFloat(document.getElementById('minAmount').value) || 0,
+          max: parseFloat(document.getElementById('maxAmount').value) || Infinity
+        },
+        risk: document.getElementById('riskLevel').value,
+        nodeType: document.getElementById('nodeFilter').value
+      };
+    },
+
+    // 检查节点是否匹配过滤条件
+    nodeMatchesFilters(node, filters) {
+      // 节点类型过滤
+      if (filters.nodeType !== 'all' && node.type !== filters.nodeType) {
+        return false;
+      }
+
+      // 风险等级过滤
+      if (filters.risk !== 'all') {
+        const nodeRisk = this.calculateNodeRisk(node);
+        if (!this.matchesRiskLevel(nodeRisk, filters.risk)) {
+          return false;
+        }
+      }
+
+      return true;
+    },
+
+    // 检查边是否匹配过滤条件
+    edgeMatchesFilters(edge, filters) {
+      // 时间过滤
+      if (edge.timestamp) {
+        const time = new Date(edge.timestamp);
+        if (time < filters.time.start || time > filters.time.end) {
+          return false;
+        }
+      }
+
+      // 金额过滤
+      if (edge.amount) {
+        if (edge.amount < filters.amount.min || 
+            edge.amount > filters.amount.max) {
+          return false;
+        }
+      }
+
+      return true;
+    },
+
+    // 计算节点风险等级
+    calculateNodeRisk(node) {
+      // 实现节点风险评估逻辑
+      let risk = 0;
+      
+      // 基于节点类型的风险
+      const typeRisk = {
+        'account': 30,
+        'merchant': 20,
+        'transaction': 10
+      };
+      risk += typeRisk[node.type] || 0;
+
+      // 基于节点属性的风险
+      if (node.properties) {
+        if (node.properties.age < 30) risk += 10;
+        if (node.properties.suspicious) risk += 20;
+        if (node.properties.previousViolations) risk += 30;
+      }
+
+      return risk;
+    },
+
+    // 检查风险等级匹配
+    matchesRiskLevel(risk, level) {
+      switch (level) {
+        case 'high': return risk >= 70;
+        case 'medium': return risk >= 30 && risk < 70;
+        case 'low': return risk < 30;
+        default: return true;
+      }
+    }
+  };
+
+  // 绑定到全局
+  window.applyFilters = () => MultiDimensionalFilter.applyFilters();
 
   // 关系分析工具
   const RelationshipAnalysis = {
@@ -2262,38 +2496,215 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 团伙发现算法
     async detectGroups(graphData) {
-      const groups = [];
+      // 使用改进的 DBSCAN 算法
+      const groups = this.improvedDBSCAN(graphData);
+      // 使用社交网络分析方法进行验证
+      const validatedGroups = this.validateGroups(groups, graphData);
+      // 计算团伙特征
+      return this.analyzeGroupCharacteristics(validatedGroups, graphData);
+    },
+
+    // 改进的 DBSCAN 算法
+    improvedDBSCAN(graphData) {
+      const eps = 0.3; // 邻域半径
+      const minPts = 3; // 最小点数
+      const nodes = graphData.nodes;
       const visited = new Set();
+      const groups = [];
 
-      // 使用 DBSCAN 聚类算法的简化版本
-      const expandCluster = (nodeId, neighbors, cluster) => {
-        cluster.push(nodeId);
-        visited.add(nodeId);
+      nodes.forEach(node => {
+        if (visited.has(node.id)) return;
 
-        neighbors.forEach(neighborId => {
-          if (!visited.has(neighborId)) {
-            const newNeighbors = this.findNeighbors(neighborId, graphData);
-            if (newNeighbors.length >= this.minPts) {
-              expandCluster(neighborId, newNeighbors, cluster);
-            }
-          }
-        });
-      };
-
-      graphData.nodes.forEach(node => {
-        if (!visited.has(node.id)) {
-          const neighbors = this.findNeighbors(node.id, graphData);
-          if (neighbors.length >= this.minClusterSize) {
-            const cluster = [];
-            expandCluster(node.id, neighbors, cluster);
-            if (cluster.length >= this.minClusterSize) {
-              groups.push(cluster);
-            }
+        const neighbors = this.findDensityNeighbors(node, graphData, eps);
+        if (neighbors.length >= minPts) {
+          const group = this.expandCluster(node, neighbors, visited, graphData, eps, minPts);
+          if (group.length >= this.minClusterSize) {
+            groups.push(group);
           }
         }
       });
 
       return groups;
+    },
+
+    // 查找密度邻居
+    findDensityNeighbors(node, graphData, eps) {
+      const neighbors = [];
+      const nodeMetrics = this.calculateNodeMetrics(node, graphData);
+
+      graphData.nodes.forEach(other => {
+        if (other.id !== node.id) {
+          const otherMetrics = this.calculateNodeMetrics(other, graphData);
+          const similarity = this.calculateNodeSimilarity(nodeMetrics, otherMetrics);
+          if (similarity >= eps) {
+            neighbors.push(other.id);
+          }
+        }
+      });
+
+      return neighbors;
+    },
+
+    // 计算节点特征指标
+    calculateNodeMetrics(node, graphData) {
+      const edges = graphData.edges.filter(e => 
+        e.source === node.id || e.target === node.id
+      );
+
+      return {
+        degree: edges.length,
+        inDegree: edges.filter(e => e.target === node.id).length,
+        outDegree: edges.filter(e => e.source === node.id).length,
+        transactionAmount: edges.reduce((sum, e) => sum + (e.amount || 0), 0),
+        transactionFrequency: this.calculateTransactionFrequency(edges),
+        riskScore: this.calculateNodeRiskScore(node, edges)
+      };
+    },
+
+    // 计算交易频率
+    calculateTransactionFrequency(edges) {
+      if (edges.length < 2) return 0;
+      
+      const timestamps = edges
+        .filter(e => e.timestamp)
+        .map(e => new Date(e.timestamp))
+        .sort((a, b) => a - b);
+
+      if (timestamps.length < 2) return 0;
+
+      const timeSpan = timestamps[timestamps.length - 1] - timestamps[0];
+      return edges.length / (timeSpan / (24 * 60 * 60 * 1000)); // 每天的交易频率
+    },
+
+    // 计算节点风险分数
+    calculateNodeRiskScore(node, edges) {
+      let score = 0;
+
+      // 交易金额异常
+      const amounts = edges.map(e => e.amount || 0);
+      const avgAmount = amounts.reduce((a, b) => a + b, 0) / amounts.length;
+      const maxAmount = Math.max(...amounts);
+      if (maxAmount > avgAmount * 3) {
+        score += 30;
+      }
+
+      // 交易频率异常
+      const frequency = this.calculateTransactionFrequency(edges);
+      if (frequency > 10) { // 每天超过10笔交易
+        score += 20;
+      }
+
+      // 交易对手多样性
+      const counterparties = new Set(edges.map(e => 
+        e.source === node.id ? e.target : e.source
+      ));
+      if (counterparties.size > 10) {
+        score += 20;
+      }
+
+      return Math.min(100, score);
+    },
+
+    // 计算节点相似度
+    calculateNodeSimilarity(metrics1, metrics2) {
+      const features = [
+        'degree',
+        'inDegree',
+        'outDegree',
+        'transactionAmount',
+        'transactionFrequency',
+        'riskScore'
+      ];
+
+      // 使用余弦相似度
+      let dotProduct = 0;
+      let norm1 = 0;
+      let norm2 = 0;
+
+      features.forEach(feature => {
+        dotProduct += metrics1[feature] * metrics2[feature];
+        norm1 += metrics1[feature] * metrics1[feature];
+        norm2 += metrics2[feature] * metrics2[feature];
+      });
+
+      return dotProduct / (Math.sqrt(norm1) * Math.sqrt(norm2));
+    },
+
+    // 验证团伙
+    validateGroups(groups, graphData) {
+      return groups.filter(group => {
+        // 计算团伙内部接密度
+        const density = this.calculateGroupDensity(group, graphData);
+        // 计算团伙交易模式
+        const patterns = this.analyzeGroupPatterns(group, graphData);
+        // 计算团伙风险分数
+        const risk = this.calculateGroupRisk(group, graphData);
+
+        return density > 0.3 && patterns.suspicious && risk > 60;
+      });
+    },
+
+    // 计算团伙特征
+    analyzeGroupCharacteristics(groups, graphData) {
+      return groups.map(group => ({
+        members: group,
+        size: group.length,
+        density: this.calculateGroupDensity(group, graphData),
+        patterns: this.analyzeGroupPatterns(group, graphData),
+        risk: this.calculateGroupRisk(group, graphData),
+        roles: this.identifyMemberRoles(group, graphData),
+        timeline: this.createGroupTimeline(group, graphData)
+      }));
+    },
+
+    // 识别成员角色
+    identifyMemberRoles(group, graphData) {
+      const roles = {};
+      
+      group.forEach(nodeId => {
+        const metrics = this.calculateNodeMetrics(
+          { id: nodeId }, 
+          graphData
+        );
+
+        // 根据节点特征确定角色
+        if (metrics.outDegree / metrics.degree > 0.8) {
+          roles[nodeId] = 'source'; // 资金源
+        } else if (metrics.inDegree / metrics.degree > 0.8) {
+          roles[nodeId] = 'sink'; // 资金汇集点
+        } else if (metrics.degree > 10) {
+          roles[nodeId] = 'hub'; // 中转节点
+        } else {
+          roles[nodeId] = 'regular'; // 普通成员
+        }
+      });
+
+      return roles;
+    },
+
+    // 创建团伙时间线
+    createGroupTimeline(group, graphData) {
+      const events = [];
+      
+      // 收集所有相关交易
+      graphData.edges
+        .filter(edge => 
+          group.includes(edge.source) && group.includes(edge.target)
+        )
+        .forEach(edge => {
+          events.push({
+            time: new Date(edge.timestamp),
+            type: 'transaction',
+            source: edge.source,
+            target: edge.target,
+            amount: edge.amount
+          });
+        });
+
+      // 按时间排序
+      events.sort((a, b) => a.time - b.time);
+
+      return events;
     },
 
     // 查找邻居节点
@@ -2393,7 +2804,7 @@ document.addEventListener('DOMContentLoaded', function() {
     renderGroupResults(groups) {
       return `
         <div class="group-results">
-          <h5>发现 ${groups.length} 个可疑团伙</h5>
+          <h5>现 ${groups.length} 个可疑团伙</h5>
           ${groups.map((group, index) => `
             <div class="group-item">
               <div class="group-header">
@@ -2466,7 +2877,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const path = queue.shift();
         const lastNode = path[path.length - 1];
         
-        if (path.length > 3) continue; // 限制路径长度
+        if (path.length > 3) continue; // 制路径长度
         
         graph.getEdges().forEach(edge => {
           const model = edge.getModel();
@@ -2558,7 +2969,7 @@ document.addEventListener('DOMContentLoaded', function() {
       };
     },
 
-    // 分析周期性
+    // 分析周期
     analyzePeriodicity(transactions) {
       // 简单的周期性检测
       const hourCounts = new Array(24).fill(0);
@@ -2705,7 +3116,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // 将新功能绑定到全局
   window.exportReport = () => ReportExport.exportReport();
   window.saveSnapshot = () => SnapshotManager.saveSnapshot();
-  window.loadSnapshot = () => SnapshotManager.loadSnapshot();
+  window.loadSnapshot = (id) => SnapshotManager.loadSnapshot(id);
   window.applyFilters = () => MultiDimensionalFilter.applyFilters();
   window.findGroups = () => RelationshipAnalysis.findGroups();
   window.analyzeRelationPath = () => RelationshipAnalysis.analyzeRelationPath();
@@ -2883,22 +3294,30 @@ document.addEventListener('DOMContentLoaded', function() {
   // 时间轴控制模块
   const TimelineController = {
     isPlaying: false,
-    currentTimeIndex: 0,
-    timeData: [],
     playInterval: null,
+    currentTime: null,
+    timeData: [],
+    playbackSpeed: 1000, // 播放速度（毫秒/帧）
 
     // 初始化时间轴
     initialize(data) {
-      // 提取时间信息
       this.timeData = data.edges
-        .map(edge => new Date(edge.timestamp).getTime())
-        .sort((a, b) => a - b);
+        .filter(edge => edge.timestamp)
+        .map(edge => ({
+          time: new Date(edge.timestamp),
+          edge: edge
+        }))
+        .sort((a, b) => a.time - b.time);
 
-      const timelineSlider = document.getElementById('timelineSlider');
-      timelineSlider.max = this.timeData.length - 1;
-      timelineSlider.value = 0;
+      if (this.timeData.length === 0) return;
 
-      this.updateTimeDisplay(this.timeData[0]);
+      const slider = document.getElementById('timelineSlider');
+      slider.min = 0;
+      slider.max = this.timeData.length - 1;
+      slider.value = 0;
+
+      this.currentTime = this.timeData[0].time;
+      this.updateTimeDisplay();
       this.bindEvents();
     },
 
@@ -2906,42 +3325,61 @@ document.addEventListener('DOMContentLoaded', function() {
     bindEvents() {
       const slider = document.getElementById('timelineSlider');
       slider.addEventListener('input', (e) => {
-        this.currentTimeIndex = parseInt(e.target.value);
-        this.updateView();
+        this.pause();
+        this.jumpToIndex(parseInt(e.target.value));
       });
+
+      const speedControl = document.createElement('select');
+      speedControl.innerHTML = `
+        <option value="2000">0.5x</option>
+        <option value="1000" selected>1x</option>
+        <option value="500">2x</option>
+        <option value="250">4x</option>
+      `;
+      speedControl.addEventListener('change', (e) => {
+        this.playbackSpeed = parseInt(e.target.value);
+        if (this.isPlaying) {
+          this.pause();
+          this.play();
+        }
+      });
+
+      document.querySelector('.timeline-controls').appendChild(speedControl);
     },
 
-    // 播放/暂停
+    // 播放/暂停切换
     togglePlay() {
-      this.isPlaying = !this.isPlaying;
-      const playButton = document.querySelector('.timeline-controls button');
-      
       if (this.isPlaying) {
-        playButton.textContent = '暂停';
-        this.play();
-      } else {
-        playButton.textContent = '播放';
         this.pause();
+      } else {
+        this.play();
       }
     },
 
-    // 播放
+    // 开始播放
     play() {
-      if (this.playInterval) clearInterval(this.playInterval);
+      if (!this.timeData.length) return;
+      
+      this.isPlaying = true;
+      const playButton = document.querySelector('.timeline-controls button');
+      playButton.textContent = '暂停';
+
+      const slider = document.getElementById('timelineSlider');
+      let currentIndex = parseInt(slider.value);
       
       this.playInterval = setInterval(() => {
-        if (this.currentTimeIndex >= this.timeData.length - 1) {
+        currentIndex++;
+        if (currentIndex >= this.timeData.length) {
           this.pause();
           return;
         }
         
-        this.currentTimeIndex++;
-        document.getElementById('timelineSlider').value = this.currentTimeIndex;
-        this.updateView();
-      }, 1000); // 每秒更新一次
+        this.jumpToIndex(currentIndex);
+        slider.value = currentIndex;
+      }, this.playbackSpeed);
     },
 
-    // 暂停
+    // 暂停播放
     pause() {
       this.isPlaying = false;
       document.querySelector('.timeline-controls button').textContent = '播放';
@@ -2951,93 +3389,44 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     },
 
-    // 更新视图
-    updateView() {
-      const currentTime = this.timeData[this.currentTimeIndex];
-      this.updateTimeDisplay(currentTime);
-      this.filterDataByTime(currentTime);
+    // 跳转到指定索引
+    jumpToIndex(index) {
+      const timePoint = this.timeData[index];
+      if (!timePoint) return;
+
+      this.currentTime = timePoint.time;
+      this.updateTimeDisplay();
+      this.filterDataByTime(this.currentTime);
     },
 
     // 更新时间显示
-    updateTimeDisplay(timestamp) {
+    updateTimeDisplay() {
       document.getElementById('currentTime').textContent = 
-        new Date(timestamp).toLocaleString();
+        this.currentTime.toLocaleString();
     },
 
     // 根据时间筛选数据
     filterDataByTime(timestamp) {
-      const originalData = graph.save();
-      const filteredData = {
-        nodes: originalData.nodes,
-        edges: originalData.edges.filter(edge => 
-          new Date(edge.timestamp).getTime() <= timestamp
-        )
-      };
-      
-      graph.changeData(filteredData);
-    },
-
-    // 时间轴跳转
-    handleTimelineJump(timestamp) {
-      const index = this.timeData.findIndex(time => time >= timestamp);
-      if (index !== -1) {
-        this.currentTimeIndex = index;
-        document.getElementById('timelineSlider').value = index;
-        this.updateView();
-      }
-    },
-
-    // 导出时间轴数据
-    exportTimelineData() {
       const data = graph.save();
-      const timelineData = data.edges
-        .filter(edge => edge.timestamp)
-        .map(edge => ({
-          timestamp: edge.timestamp,
-          source: this.getNodeInfo(edge.source),
-          target: this.getNodeInfo(edge.target),
-          amount: edge.amount,
-          type: edge.type
-        }))
-        .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+      const filteredEdges = data.edges.filter(edge => 
+        new Date(edge.timestamp) <= timestamp
+      );
 
-      return {
-        events: timelineData,
-        range: {
-          start: timelineData[0]?.timestamp,
-          end: timelineData[timelineData.length - 1]?.timestamp
-        },
-        statistics: this.calculateTimelineStatistics(timelineData)
-      };
-    },
+      // 获取相关节点
+      const relevantNodes = new Set();
+      filteredEdges.forEach(edge => {
+        relevantNodes.add(edge.source);
+        relevantNodes.add(edge.target);
+      });
 
-    // 获节点信息
-    getNodeInfo(nodeId) {
-      const node = graph.findById(nodeId)?.getModel();
-      return node ? {
-        id: node.id,
-        type: node.type,
-        label: node.label
-      } : { id: nodeId };
-    },
+      const filteredNodes = data.nodes.filter(node => 
+        relevantNodes.has(node.id)
+      );
 
-    // 计算时间轴统计信息
-    calculateTimelineStatistics(timelineData) {
-      const intervals = [];
-      for (let i = 1; i < timelineData.length; i++) {
-        intervals.push(
-          new Date(timelineData[i].timestamp) - 
-          new Date(timelineData[i-1].timestamp)
-        );
-      }
-
-      return {
-        totalEvents: timelineData.length,
-        averageInterval: intervals.length ? 
-          intervals.reduce((a, b) => a + b, 0) / intervals.length : 0,
-        minInterval: Math.min(...intervals),
-        maxInterval: Math.max(...intervals)
-      };
+      graph.changeData({
+        nodes: filteredNodes,
+        edges: filteredEdges
+      });
     }
   };
 
@@ -3416,72 +3805,174 @@ document.addEventListener('DOMContentLoaded', function() {
   // 性能监控模块
   const PerformanceMonitor = {
     stats: null,
-    enabled: false,
+    panels: {},
+    metrics: {},
 
-    // 初始化性能控
+    // 初始化性能监控
     initialize() {
       this.stats = new Stats();
-      this.stats.dom.style.position = 'absolute';
-      this.stats.dom.style.right = '320px';
-      this.stats.dom.style.top = '0px';
-      this.stats.dom.style.display = 'none';
-      document.body.appendChild(this.stats.dom);
-
-      // 添加自定义面板
-      this.addCustomPanel();
+      this.setupPanels();
+      this.startMonitoring();
+      this.setupMetricsCollection();
     },
 
-    // 添加自定义性能面板
-    addCustomPanel() {
-      const nodePanel = new Stats.Panel('Nodes', '#ff8', '#221');
-      this.stats.addPanel(nodePanel);
-      const edgePanel = new Stats.Panel('Edges', '#f8f', '#212');
-      this.stats.addPanel(edgePanel);
+    // 设置监控面板
+    setupPanels() {
+      // FPS面板
+      this.panels.fps = this.stats.addPanel(new Stats.Panel('FPS', '#0ff', '#002'));
+      // 内存面板
+      this.panels.memory = this.stats.addPanel(new Stats.Panel('MB', '#f08', '#201'));
+      // 节点渲染时间面板
+      this.panels.nodeRender = this.stats.addPanel(new Stats.Panel('Nodes', '#0f0', '#020'));
+      // 边渲染时间面板
+      this.panels.edgeRender = this.stats.addPanel(new Stats.Panel('Edges', '#ff0', '#220'));
+      // 布局计算时间面板
+      this.panels.layout = this.stats.addPanel(new Stats.Panel('Layout', '#f0f', '#202'));
 
-      // 定期更新节点和边的数量
-      setInterval(() => {
-        if (this.enabled) {
-          nodePanel.update(graph.getNodes().length, 1000);
-          edgePanel.update(graph.getEdges().length, 5000);
-        }
-      }, 1000);
-    },
-
-    // 切换性能监控显示
-    toggle() {
-      this.enabled = !this.enabled;
-      this.stats.dom.style.display = this.enabled ? 'block' : 'none';
-      
-      if (this.enabled) {
-        this.startMonitoring();
-      } else {
-        this.stopMonitoring();
-      }
+      this.stats.showPanel(0); // 默认显示FPS面板
     },
 
     // 开始监控
     startMonitoring() {
-      const animate = () => {
-        this.stats.begin();
-        // 在这里添加需要监控的渲染逻辑
-        graph.paint();
-        this.stats.end();
-        
-        if (this.enabled) {
-          requestAnimationFrame(animate);
-        }
-      };
-      animate();
+      const container = document.createElement('div');
+      container.style.position = 'fixed';
+      container.style.top = '0';
+      container.style.right = '320px';
+      container.appendChild(this.stats.dom);
+      document.body.appendChild(container);
+
+      this.animate();
     },
 
-    // 停止监控
-    stopMonitoring() {
-      this.stats.dom.style.display = 'none';
+    // 动画循环
+    animate() {
+      this.stats.begin();
+      
+      // 更新各项指标
+      this.updateMetrics();
+      
+      this.stats.end();
+      
+      requestAnimationFrame(() => this.animate());
+    },
+
+    // 设置指标收集
+    setupMetricsCollection() {
+      setInterval(() => {
+        this.collectMetrics();
+      }, 1000);
+    },
+
+    // 收集性能指标
+    collectMetrics() {
+      const metrics = {
+        fps: this.stats.getFPS(),
+        memory: performance.memory ? {
+          used: Math.round(performance.memory.usedJSHeapSize / 1048576),
+          total: Math.round(performance.memory.totalJSHeapSize / 1048576),
+          limit: Math.round(performance.memory.jsHeapSizeLimit / 1048576)
+        } : null,
+        nodes: {
+          count: graph.getNodes().length,
+          visible: graph.getNodes().filter(node => node.isVisible()).length,
+          renderTime: this.metrics.nodeRenderTime
+        },
+        edges: {
+          count: graph.getEdges().length,
+          visible: graph.getEdges().filter(edge => edge.isVisible()).length,
+          renderTime: this.metrics.edgeRenderTime
+        },
+        layout: {
+          time: this.metrics.layoutTime,
+          type: graph.get('layout').type
+        }
+      };
+
+      this.updatePanels(metrics);
+      this.logMetrics(metrics);
+    },
+
+    // 更新监控面板
+    updatePanels(metrics) {
+      this.panels.fps.update(metrics.fps, 60);
+      if (metrics.memory) {
+        this.panels.memory.update(metrics.memory.used, metrics.memory.limit);
+      }
+      this.panels.nodeRender.update(metrics.nodes.renderTime, 100);
+      this.panels.edgeRender.update(metrics.edges.renderTime, 100);
+      this.panels.layout.update(metrics.layout.time, 1000);
+    },
+
+    // 记录性能指标
+    logMetrics(metrics) {
+      console.log('Performance Metrics:', {
+        timestamp: new Date().toISOString(),
+        ...metrics
+      });
+    },
+
+    // 更新性能指标
+    updateMetrics() {
+      const startTime = performance.now();
+      
+      // 测量节点渲染时间
+      graph.getNodes().forEach(node => {
+        if (node.isVisible()) {
+          node.draw();
+        }
+      });
+      this.metrics.nodeRenderTime = performance.now() - startTime;
+
+      // 测量边渲染时间
+      const edgeStartTime = performance.now();
+      graph.getEdges().forEach(edge => {
+        if (edge.isVisible()) {
+          edge.draw();
+        }
+      });
+      this.metrics.edgeRenderTime = performance.now() - edgeStartTime;
+
+      // 测量布局计算时间
+      if (graph.get('layout').isLayouting()) {
+        this.metrics.layoutTime = performance.now() - graph.get('layout').startTime;
+      }
+    },
+
+    // 导出性能报告
+    exportPerformanceReport() {
+      const report = {
+        timestamp: new Date().toISOString(),
+        systemInfo: {
+          userAgent: navigator.userAgent,
+          platform: navigator.platform,
+          webglSupported: G6.Util.isWebGLSupported(),
+          renderer: graph.get('renderer').type
+        },
+        metrics: this.metrics,
+        graphStats: {
+          nodeCount: graph.getNodes().length,
+          edgeCount: graph.getEdges().length,
+          layoutType: graph.get('layout').type,
+          renderMode: graph.get('renderer').type
+        }
+      };
+
+      const blob = new Blob([JSON.stringify(report, null, 2)], {
+        type: 'application/json'
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `performance-report-${Date.now()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
   };
 
-  // 绑定到全局
-  window.toggleStats = () => PerformanceMonitor.toggle();
+  // 初始化性能监控
+  PerformanceMonitor.initialize();
 
   // 图片导出模块
   const ExportManager = {
@@ -3806,7 +4297,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 渲染优化管理器
   const RenderOptimizer = {
-    // 视口优化
+    // 视图优化
     enableViewportOptimization() {
       const viewportCheck = () => {
         const viewport = graph.getViewport();
@@ -4701,4 +5192,887 @@ document.addEventListener('DOMContentLoaded', function() {
   // 绑定到全局
   window.importData = (file) => DataIOManager.importData(file);
   window.exportData = (format) => DataIOManager.exportData(format);
+
+  // 异常检测可视化模块
+  const AnomalyVisualization = {
+    // 更新异常检测面板
+    updateAnomalyPanel(anomalies) {
+      const anomalyList = document.getElementById('anomalyList');
+      anomalyList.innerHTML = anomalies.map(anomaly => `
+        <div class="anomaly-item ${anomaly.type}">
+          <div class="anomaly-header">
+            <span class="anomaly-type">${this.getAnomalyTypeLabel(anomaly.type)}</span>
+            <span class="anomaly-severity ${this.getSeverityClass(anomaly.severity)}">
+              风险等级: ${this.formatSeverity(anomaly.severity)}
+            </span>
+          </div>
+          <div class="anomaly-description">${anomaly.description}</div>
+          <div class="anomaly-details">
+            ${this.renderAnomalyDetails(anomaly)}
+          </div>
+          <div class="anomaly-actions">
+            <button onclick="AnomalyVisualization.highlightAnomaly('${anomaly.id}')">
+              查看详情
+            </button>
+            <button onclick="AnomalyVisualization.addToEvidence('${anomaly.id}')">
+              添加到证据
+            </button>
+          </div>
+        </div>
+      `).join('');
+    },
+
+    // 获取异常类型标签
+    getAnomalyTypeLabel(type) {
+      const labels = {
+        'cycle': '循环交易',
+        'rapid': '快速连续交易',
+        'amount': '异常金额',
+        'pattern': '异常模式'
+      };
+      return labels[type] || type;
+    },
+
+    // 获取严重程度样式类
+    getSeverityClass(severity) {
+      if (severity >= 0.8) return 'critical';
+      if (severity >= 0.5) return 'high';
+      if (severity >= 0.3) return 'medium';
+      return 'low';
+    },
+
+    // 格式化严重程度
+    formatSeverity(severity) {
+      return `${Math.round(severity * 100)}%`;
+    },
+
+    // 渲染异常详情
+    renderAnomalyDetails(anomaly) {
+      switch (anomaly.type) {
+        case 'cycle':
+          return this.renderCycleDetails(anomaly.paths);
+        case 'rapid':
+          return this.renderRapidTransactionDetails(anomaly.transactions);
+        case 'amount':
+          return this.renderAmountDetails(anomaly);
+        default:
+          return '';
+      }
+    },
+
+    // 渲染循环交易详情
+    renderCycleDetails(anomaly) {
+      return `
+        <div class="cycle-details">
+          <div>循环长度: ${anomaly.path.length}</div>
+          <div>参与账户: ${anomaly.path.length}</div>
+          <div>总交易金额: ${this.formatAmount(anomaly.totalAmount)}</div>
+          <div class="cycle-path">
+            ${anomaly.path.map(nodeId => this.getNodeLabel(nodeId)).join(' → ')}
+          </div>
+        </div>
+      `;
+    },
+
+    // 渲染快速交易详情
+    renderRapidTransactionDetails(anomaly) {
+      return `
+        <div class="rapid-details">
+          <div>交易次数: ${anomaly.transactions.length}</div>
+          <div>时间跨度: ${this.formatDuration(anomaly.timeSpan)}</div>
+          <div>平均间隔: ${this.formatDuration(anomaly.avgInterval)}</div>
+          <div>总交易金额: ${this.formatAmount(anomaly.totalAmount)}</div>
+        </div>
+      `;
+    },
+
+    // 渲染异常金额详情
+    renderAmountDetails(anomaly) {
+      return `
+        <div class="amount-details">
+          <div>交易金额: ${this.formatAmount(anomaly.amount)}</div>
+          <div>超出平均值: ${this.formatPercentage(anomaly.deviation)}</div>
+          <div>发生时间: ${new Date(anomaly.timestamp).toLocaleString()}</div>
+        </div>
+      `;
+    },
+
+    // 高亮显示异常
+    highlightAnomaly(anomalyId) {
+      // 清除现有高亮
+      graph.getNodes().forEach(node => graph.clearItemStates(node));
+      graph.getEdges().forEach(edge => graph.clearItemStates(edge));
+
+      const anomaly = this.findAnomaly(anomalyId);
+      if (!anomaly) return;
+
+      // 根据异常类型进行高亮
+      switch (anomaly.type) {
+        case 'cycle':
+          this.highlightCycle(anomaly);
+          break;
+        case 'rapid':
+          this.highlightRapidTransactions(anomaly);
+          break;
+        case 'amount':
+          this.highlightAbnormalAmount(anomaly);
+          break;
+      }
+    },
+
+    // 格式化工具方法
+    formatAmount(amount) {
+      return new Intl.NumberFormat('zh-CN', {
+        style: 'currency',
+        currency: 'CNY'
+      }).format(amount);
+    },
+
+    formatDuration(ms) {
+      const seconds = Math.floor(ms / 1000);
+      const minutes = Math.floor(seconds / 60);
+      const hours = Math.floor(minutes / 60);
+      return hours > 0 ? 
+        `${hours}小时${minutes % 60}分钟` : 
+        `${minutes}分钟${seconds % 60}秒`;
+    },
+
+    formatPercentage(value) {
+      return `${(value * 100).toFixed(2)}%`;
+    },
+
+    getNodeLabel(nodeId) {
+      const node = graph.findById(nodeId);
+      return node ? (node.getModel().label || nodeId) : nodeId;
+    }
+  };
+
+  // 绑定到全局
+  window.AnomalyVisualization = AnomalyVisualization;
+
+  // WebGL渲染器配置模块
+  const WebGLRenderer = {
+    // 初始化WebGL渲染器
+    initialize() {
+      if (!G6.Util.isWebGLSupported()) {
+        console.warn('当前环境不支持WebGL，将使用Canvas渲染');
+        return false;
+      }
+
+      const renderer = new G6.Renderer.WebGL({
+        container: 'container',
+        width: document.querySelector('.center-panel').offsetWidth,
+        height: document.querySelector('.center-panel').offsetHeight,
+        // WebGL特定配置
+        settings: {
+          antialias: true, // 抗锯齿
+          preserveDrawingBuffer: true, // 保留缓冲区，用于截图
+          premultipliedAlpha: true, // 预乘Alpha通道
+          depth: true // 启用深度测试
+        }
+      });
+
+      // 配置WebGL渲染参数
+      renderer.configure({
+        // 基础渲染配置
+        defaultShader: {
+          vertexShader: this.getVertexShader(),
+          fragmentShader: this.getFragmentShader()
+        },
+        // 高级特效配置
+        effects: {
+          bloom: {
+            enabled: true,
+            threshold: 0.5,
+            intensity: 1.5
+          },
+          ssao: {
+            enabled: true,
+            radius: 12,
+            intensity: 1.2
+          },
+          outline: {
+            enabled: true,
+            width: 2,
+            color: [0, 0, 0, 0.3]
+          }
+        },
+        // 性能优化配置
+        performance: {
+          enableInstancing: true, // 启用实例化渲染
+          batchSize: 5000, // 批处理大小
+          cullFace: true, // 启用面剔除
+          depthTest: true // 启用深度测试
+        }
+      });
+
+      return renderer;
+    },
+
+    // 顶点着色器
+    getVertexShader() {
+      return `
+        attribute vec2 a_position;
+        attribute vec2 a_uv;
+        attribute vec4 a_color;
+        
+        uniform mat4 u_matrix;
+        uniform float u_size;
+        
+        varying vec2 v_uv;
+        varying vec4 v_color;
+        
+        void main() {
+          gl_Position = u_matrix * vec4(a_position * u_size, 0.0, 1.0);
+          v_uv = a_uv;
+          v_color = a_color;
+        }
+      `;
+    },
+
+    // 片段着色器
+    getFragmentShader() {
+      return `
+        precision mediump float;
+        
+        varying vec2 v_uv;
+        varying vec4 v_color;
+        
+        uniform sampler2D u_texture;
+        uniform float u_opacity;
+        
+        void main() {
+          vec4 color = texture2D(u_texture, v_uv) * v_color;
+          gl_FragColor = vec4(color.rgb, color.a * u_opacity);
+        }
+      `;
+    },
+
+    // 更新渲染配置
+    updateConfig(config) {
+      const renderer = graph.get('renderer');
+      if (renderer.isWebGL) {
+        renderer.updateConfig({
+          effects: {
+            bloom: {
+              enabled: config.enableBloom,
+              intensity: config.bloomIntensity
+            },
+            ssao: {
+              enabled: config.enableSSAO,
+              intensity: config.ssaoIntensity
+            }
+          },
+          performance: {
+            batchSize: config.batchSize,
+            enableInstancing: config.enableInstancing
+          }
+        });
+      }
+    }
+  };
+
+  // 在图实例创建时初始化WebGL渲染器
+  const renderer = WebGLRenderer.initialize();
+  if (renderer) {
+    graph.set('renderer', renderer);
+  }
+
+  // 图表可视化模块
+  const ChartVisualization = {
+    // 初始化图表
+    initialize() {
+      this.setupChartContainers();
+      this.initializeCharts();
+    },
+
+    // 设置图表容器
+    setupChartContainers() {
+      const container = document.createElement('div');
+      container.className = 'charts-container';
+      container.innerHTML = `
+        <div class="chart-panel">
+          <div id="timeDistributionChart" class="chart"></div>
+          <div id="amountDistributionChart" class="chart"></div>
+          <div id="networkTopologyChart" class="chart"></div>
+          <div id="riskDistributionChart" class="chart"></div>
+        </div>
+      `;
+      document.querySelector('.left-panel').appendChild(container);
+    },
+
+    // 初始化所有图表
+    initializeCharts() {
+      this.timeDistributionChart = this.createTimeDistributionChart();
+      this.amountDistributionChart = this.createAmountDistributionChart();
+      this.networkTopologyChart = this.createNetworkTopologyChart();
+      this.riskDistributionChart = this.createRiskDistributionChart();
+    },
+
+    // 创建时间分布图表
+    createTimeDistributionChart() {
+      return new G2.Chart({
+        container: 'timeDistributionChart',
+        autoFit: true,
+        height: 200,
+        padding: [20, 20, 30, 40]
+      });
+    },
+
+    // 创建金额分布图表
+    createAmountDistributionChart() {
+      return new G2.Chart({
+        container: 'amountDistributionChart',
+        autoFit: true,
+        height: 200,
+        padding: [20, 20, 30, 40]
+      });
+    },
+
+    // 创建网络拓扑图表
+    createNetworkTopologyChart() {
+      return new G2.Chart({
+        container: 'networkTopologyChart',
+        autoFit: true,
+        height: 200,
+        padding: [20, 20, 30, 40]
+      });
+    },
+
+    // 创建风险分布图表
+    createRiskDistributionChart() {
+      return new G2.Chart({
+        container: 'riskDistributionChart',
+        autoFit: true,
+        height: 200,
+        padding: [20, 20, 30, 40]
+      });
+    },
+
+    // 更新所有图表
+    updateCharts(data) {
+      this.updateTimeDistribution(data);
+      this.updateAmountDistribution(data);
+      this.updateNetworkTopology(data);
+      this.updateRiskDistribution(data);
+    },
+
+    // 更新时间分布图表
+    updateTimeDistribution(data) {
+      const timeData = this.processTimeData(data);
+      this.timeDistributionChart.data(timeData);
+      this.timeDistributionChart.interval()
+        .position('hour*count')
+        .color('count', '#1890ff-#69c0ff')
+        .label('count');
+      this.timeDistributionChart.render();
+    },
+
+    // 更新金额分布图表
+    updateAmountDistribution(data) {
+      const amountData = this.processAmountData(data);
+      this.amountDistributionChart.data(amountData);
+      this.amountDistributionChart.interval()
+        .position('range*count')
+        .color('count', '#1890ff-#69c0ff')
+        .label('count');
+      this.amountDistributionChart.render();
+    },
+
+    // 更新网络拓扑图表
+    updateNetworkTopology(data) {
+      const topologyData = this.processTopologyData(data);
+      this.networkTopologyChart.data(topologyData);
+      this.networkTopologyChart.point()
+        .position('x*y')
+        .color('type')
+        .shape('circle')
+        .size('degree');
+      this.networkTopologyChart.render();
+    },
+
+    // 更新风险分布图表
+    updateRiskDistribution(data) {
+      const riskData = this.processRiskData(data);
+      this.riskDistributionChart.data(riskData);
+      this.riskDistributionChart.interval()
+        .position('risk*count')
+        .color('risk', ['#52c41a', '#faad14', '#f5222d'])
+        .label('count');
+      this.riskDistributionChart.render();
+    },
+
+    // 处理时间数据
+    processTimeData(data) {
+      // 实现时间数据处理逻辑
+    },
+
+    // 处理金额数据
+    processAmountData(data) {
+      // 实现金额数据处理逻辑
+    },
+
+    // 处理拓扑数据
+    processTopologyData(data) {
+      // 实现拓扑数据处理逻辑
+    },
+
+    // 处理风险数据
+    processRiskData(data) {
+      // 实现风险数据处理逻辑
+    }
+  };
+
+  // 初始化图表可视化
+  ChartVisualization.initialize();
+
+  // 国际化支持模块
+  const I18nManager = {
+    currentLocale: 'zh-CN',
+    translations: {
+      'zh-CN': {
+        // 通用
+        'common.loading': '加载中...',
+        'common.confirm': '确认',
+        'common.cancel': '取消',
+        'common.save': '保存',
+        'common.delete': '删除',
+        'common.export': '导出',
+        'common.import': '导入',
+        'common.search': '搜索',
+        'common.filter': '筛选',
+        'common.view': '查看',
+        'common.edit': '编辑',
+        'common.add': '添加',
+
+        // 面板标题
+        'panel.info': '图表信息',
+        'panel.control': '操作面板',
+        'panel.analysis': '分析结果',
+        'panel.evidence': '取证工具',
+        'panel.anomaly': '异常检测',
+
+        // 节点类型
+        'node.account': '账户',
+        'node.merchant': '商户',
+        'node.transaction': '交易',
+
+        // 算法分析
+        'algorithm.centrality': '中心度分析',
+        'algorithm.community': '社区检测',
+        'algorithm.path': '路径分析',
+        'algorithm.cycle': '环路检测',
+
+        // 异常类型
+        'anomaly.cycle': '循环交易',
+        'anomaly.rapid': '快速连续交易',
+        'anomaly.amount': '异常金额',
+        'anomaly.pattern': '异常模式',
+
+        // 风险等级
+        'risk.high': '高风险',
+        'risk.medium': '中风险',
+        'risk.low': '低风险'
+      },
+      'en-US': {
+        // Common
+        'common.loading': 'Loading...',
+        'common.confirm': 'Confirm',
+        'common.cancel': 'Cancel',
+        'common.save': 'Save',
+        'common.delete': 'Delete',
+        'common.export': 'Export',
+        'common.import': 'Import',
+        'common.search': 'Search',
+        'common.filter': 'Filter',
+        'common.view': 'View',
+        'common.edit': 'Edit',
+        'common.add': 'Add',
+
+        // Panel Titles
+        'panel.info': 'Graph Information',
+        'panel.control': 'Control Panel',
+        'panel.analysis': 'Analysis Results',
+        'panel.evidence': 'Forensics Tools',
+        'panel.anomaly': 'Anomaly Detection',
+
+        // Node Types
+        'node.account': 'Account',
+        'node.merchant': 'Merchant',
+        'node.transaction': 'Transaction',
+
+        // Algorithms
+        'algorithm.centrality': 'Centrality Analysis',
+        'algorithm.community': 'Community Detection',
+        'algorithm.path': 'Path Analysis',
+        'algorithm.cycle': 'Cycle Detection',
+
+        // Anomaly Types
+        'anomaly.cycle': 'Cyclic Transaction',
+        'anomaly.rapid': 'Rapid Consecutive Transaction',
+        'anomaly.amount': 'Abnormal Amount',
+        'anomaly.pattern': 'Unusual Pattern',
+
+        // Risk Levels
+        'risk.high': 'High Risk',
+        'risk.medium': 'Medium Risk',
+        'risk.low': 'Low Risk'
+      }
+    },
+
+    // 切换语言
+    setLocale(locale) {
+      if (this.translations[locale]) {
+        this.currentLocale = locale;
+        this.updateUI();
+        localStorage.setItem('preferredLocale', locale);
+      }
+    },
+
+    // 获取翻译文本
+    t(key, params = {}) {
+      const text = this.translations[this.currentLocale][key] || key;
+      return text.replace(/\{(\w+)\}/g, (_, param) => params[param] || '');
+    },
+
+    // 更新UI文本
+    updateUI() {
+      // 更新所有带有 data-i18n 属性的元素
+      document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        element.textContent = this.t(key);
+      });
+
+      // 更新按钮文本
+      document.querySelectorAll('button[data-i18n]').forEach(button => {
+        const key = button.getAttribute('data-i18n');
+        button.textContent = this.t(key);
+      });
+
+      // 更新选项文本
+      document.querySelectorAll('select[data-i18n] option').forEach(option => {
+        const key = option.getAttribute('data-i18n');
+        if (key) {
+          option.textContent = this.t(key);
+        }
+      });
+
+      // 更新面板标题
+      document.querySelectorAll('.panel-title[data-i18n]').forEach(title => {
+        const key = title.getAttribute('data-i18n');
+        title.textContent = this.t(key);
+      });
+    },
+
+    // 初始化国际化支持
+    initialize() {
+      // 从本地存储获取首选语言
+      const preferredLocale = localStorage.getItem('preferredLocale');
+      if (preferredLocale && this.translations[preferredLocale]) {
+        this.currentLocale = preferredLocale;
+      } else {
+        // 根据浏览器语言设置默认语言
+        const browserLocale = navigator.language;
+        this.currentLocale = this.translations[browserLocale] ? browserLocale : 'en-US';
+      }
+
+      // 添加语言切换控件
+      this.addLanguageSelector();
+      // 初始更新UI
+      this.updateUI();
+    },
+
+    // 添加语言选择器
+    addLanguageSelector() {
+      const selector = document.createElement('select');
+      selector.className = 'language-selector';
+      selector.innerHTML = `
+        <option value="zh-CN">中文</option>
+        <option value="en-US">English</option>
+      `;
+      selector.value = this.currentLocale;
+      selector.addEventListener('change', (e) => {
+        this.setLocale(e.target.value);
+      });
+
+      // 添加到控制面板
+      const controlPanel = document.querySelector('.right-panel');
+      controlPanel.insertBefore(selector, controlPanel.firstChild);
+    }
+  };
+
+  // 初始化国际化支持
+  I18nManager.initialize();
+
+  // 证据链导出模块
+  const EvidenceExporter = {
+    // 导出证据链报告
+    exportEvidenceChain() {
+      const evidence = {
+        metadata: this.generateMetadata(),
+        timeline: this.generateTimeline(),
+        evidence: this.collectEvidence(),
+        analysis: this.generateAnalysis(),
+        visualizations: this.captureVisualizations()
+      };
+
+      // 根据选择的格式导出
+      const format = document.getElementById('exportFormat').value;
+      switch (format) {
+        case 'pdf':
+          this.exportToPDF(evidence);
+          break;
+        case 'html':
+          this.exportToHTML(evidence);
+          break;
+        case 'word':
+          this.exportToWord(evidence);
+          break;
+        default:
+          this.exportToJSON(evidence);
+      }
+    },
+
+    // 生成元数据
+    generateMetadata() {
+      return {
+        caseId: `CASE-${Date.now()}`,
+        investigator: localStorage.getItem('investigatorName') || 'Unknown',
+        timestamp: new Date().toISOString(),
+        toolVersion: '1.0.0',
+        graphInfo: {
+          nodeCount: graph.getNodes().length,
+          edgeCount: graph.getEdges().length,
+          dataSource: 'Transaction Database'
+        }
+      };
+    },
+
+    // 生成时间线
+    generateTimeline() {
+      const events = [];
+
+      // 收集所有标记和注释
+      ForensicsTools.evidence.markers.forEach(marker => {
+        events.push({
+          type: 'marker',
+          timestamp: marker.timestamp,
+          description: marker.label,
+          relatedNodes: marker.nodes
+        });
+      });
+
+      ForensicsTools.evidence.comments.forEach(comment => {
+        events.push({
+          type: 'comment',
+          timestamp: comment.timestamp,
+          description: comment.content,
+          relatedElements: comment.elements
+        });
+      });
+
+      // 收集异常检测结果
+      const anomalies = AnomalyDetection.detectAnomalies();
+      anomalies.forEach(anomaly => {
+        events.push({
+          type: 'anomaly',
+          timestamp: anomaly.timestamp,
+          description: anomaly.description,
+          severity: anomaly.severity,
+          details: anomaly.details
+        });
+      });
+
+      // 按时间排序
+      return events.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    },
+
+    // 收集证据
+    collectEvidence() {
+      return {
+        markers: ForensicsTools.evidence.markers,
+        comments: ForensicsTools.evidence.comments,
+        screenshots: ForensicsTools.evidence.screenshots,
+        relatedNodes: this.collectRelatedNodes(),
+        transactions: this.collectRelatedTransactions()
+      };
+    },
+
+    // 收集相关节点
+    collectRelatedNodes() {
+      const nodes = new Set();
+      
+      // 收集标记的节点
+      ForensicsTools.evidence.markers.forEach(marker => {
+        marker.nodes.forEach(node => nodes.add(node));
+      });
+
+      // 收集注释相关的节点
+      ForensicsTools.evidence.comments.forEach(comment => {
+        comment.elements.nodes.forEach(node => nodes.add(node));
+      });
+
+      return Array.from(nodes).map(nodeId => {
+        const node = graph.findById(nodeId);
+        return node ? node.getModel() : null;
+      }).filter(Boolean);
+    },
+
+    // 收集相关交易
+    collectRelatedTransactions() {
+      const transactions = new Set();
+      const relatedNodes = this.collectRelatedNodes();
+      const nodeIds = new Set(relatedNodes.map(node => node.id));
+
+      graph.getEdges().forEach(edge => {
+        const model = edge.getModel();
+        if (nodeIds.has(model.source) || nodeIds.has(model.target)) {
+          transactions.add(model);
+        }
+      });
+
+      return Array.from(transactions);
+    },
+
+    // 生成分析报告
+    generateAnalysis() {
+      return {
+        centrality: GraphAlgorithms.calculateCentrality(graph),
+        communities: GraphAlgorithms.detectCommunities(graph),
+        paths: GraphAlgorithms.analyzePaths(graph),
+        cycles: GraphAlgorithms.detectCycles(graph),
+        riskAssessment: this.generateRiskAssessment()
+      };
+    },
+
+    // 生成风险评估
+    generateRiskAssessment() {
+      const data = graph.save();
+      return {
+        overallRisk: this.calculateOverallRisk(data),
+        anomalyStats: this.calculateAnomalyStatistics(data),
+        recommendations: this.generateRecommendations(data)
+      };
+    },
+
+    // 捕获可视化内容
+    captureVisualizations() {
+      return {
+        graphSnapshot: this.captureGraphImage(),
+        charts: this.captureCharts(),
+        timeline: this.captureTimeline()
+      };
+    },
+
+    // 导出为PDF
+    async exportToPDF(evidence) {
+      const doc = new jsPDF();
+      
+      // 添加封面
+      doc.setFontSize(20);
+      doc.text('欺诈分析调查报告', 20, 20);
+      
+      // 添加元数据
+      doc.setFontSize(12);
+      doc.text(`案件编号: ${evidence.metadata.caseId}`, 20, 40);
+      doc.text(`调查人员: ${evidence.metadata.investigator}`, 20, 50);
+      doc.text(`生成时间: ${new Date().toLocaleString()}`, 20, 60);
+      
+      // 添加时间线
+      doc.addPage();
+      doc.text('调查时间线', 20, 20);
+      evidence.timeline.forEach((event, index) => {
+        const y = 40 + index * 10;
+        if (y > 280) {
+          doc.addPage();
+          y = 20;
+        }
+        doc.text(`${new Date(event.timestamp).toLocaleString()}: ${event.description}`, 20, y);
+      });
+      
+      // 添加证据截图
+      evidence.visualizations.screenshots.forEach(screenshot => {
+        doc.addPage();
+        doc.addImage(screenshot, 'PNG', 20, 20, 170, 100);
+      });
+      
+      // 保存PDF
+      doc.save(`evidence-report-${Date.now()}.pdf`);
+    },
+
+    // 导出为HTML
+    exportToHTML(evidence) {
+      const template = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>欺诈分析调查报告</title>
+            <style>
+              ${this.getReportStyles()}
+            </style>
+          </head>
+          <body>
+            <div class="report-container">
+              ${this.renderReportHeader(evidence.metadata)}
+              ${this.renderTimeline(evidence.timeline)}
+              ${this.renderEvidence(evidence.evidence)}
+              ${this.renderAnalysis(evidence.analysis)}
+              ${this.renderVisualizations(evidence.visualizations)}
+            </div>
+          </body>
+        </html>
+      `;
+
+      const blob = new Blob([template], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `evidence-report-${Date.now()}.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    },
+
+    // 获取报告样式
+    getReportStyles() {
+      return `
+        .report-container {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 20px;
+          font-family: Arial, sans-serif;
+        }
+        
+        .timeline-event {
+          margin: 10px 0;
+          padding: 10px;
+          border-left: 3px solid #1890ff;
+          background: #f0f5ff;
+        }
+        
+        .evidence-item {
+          margin: 15px 0;
+          padding: 15px;
+          border: 1px solid #d9d9d9;
+          border-radius: 4px;
+        }
+        
+        .visualization {
+          margin: 20px 0;
+          text-align: center;
+        }
+        
+        .analysis-section {
+          margin: 20px 0;
+          padding: 15px;
+          background: #f8f8f8;
+          border-radius: 4px;
+        }
+      `;
+    }
+  };
+
+  // 绑定到全局
+  window.exportEvidenceChain = () => EvidenceExporter.exportEvidenceChain();
 }); 
