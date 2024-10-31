@@ -248,149 +248,134 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 图算法实现
   const GraphAlgorithms = {
-    // 中心度分析 - 使用G6自带的度中心性算法
+    // 中心度分析 - 使用 G6.Algorithm.degreeCloseness
     calculateCentrality(graph) {
-      const nodes = graph.getNodes();
-      const edges = graph.getEdges();
-      
-      // 构建G6需要的数据格式
-      const data = {
-        nodes: nodes.map(node => node.getModel()),
-        edges: edges.map(edge => edge.getModel())
-      };
-
-      // 使用G6的度中心性算法
-      const degree = G6.Util.getNodeDegree(data, 'both', (d) => d.id);
-      
-      // 将结果转换为数组并排序
-      const sortedNodes = Object.entries(degree)
-        .sort(([, a], [, b]) => b - a)
-        .slice(0, 5);
-
-      // 更新UI
-      const top5List = document.getElementById('centralityTop5');
-      top5List.innerHTML = '';
-      sortedNodes.forEach(([nodeId, score]) => {
-        const node = graph.findById(nodeId);
-        const nodeInfo = node.getModel();
-        const li = document.createElement('li');
-        li.textContent = `${nodeInfo.label || nodeId}: ${score}`;
-        li.className = 'highlight-node';
-        top5List.appendChild(li);
-
-        // 高亮重要节点
-        graph.setItemState(node, 'highlight', true);
-      });
-
-      return sortedNodes;
-    },
-
-    // 社区检测 - 使用G6自带的Connected Components算法
-    detectCommunities(graph) {
-      const nodes = graph.getNodes();
-      const edges = graph.getEdges();
-      
-      // 构建G6需要的数据格式
-      const data = {
-        nodes: nodes.map(node => node.getModel()),
-        edges: edges.map(edge => edge.getModel())
-      };
-
-      // 使用G6的连通分量算法
-      const components = G6.Algorithm.ConnectedComponent(data);
-      
-      // 统计社区信息
-      let maxSize = 0;
-      components.forEach(community => {
-        maxSize = Math.max(maxSize, community.length);
-      });
-
-      // 更新UI
-      document.getElementById('communityCount').textContent = components.length;
-      document.getElementById('maxCommunitySize').textContent = maxSize;
-
-      // 为不同社区的节点设置不同颜色
-      components.forEach((community, index) => {
-        const color = `hsl(${(index * 360) / components.length}, 70%, 70%)`;
-        community.forEach(nodeId => {
-          const node = graph.findById(nodeId);
-          if (node) {
-            graph.updateItem(node, {
-              style: {
-                fill: color
-              }
-            });
-          }
-        });
-      });
-
-      return {
-        communities: components,
-        count: components.length,
-        maxSize
-      };
-    },
-
-    // 路径分析 - 使用G6自带的Dijkstra算法
-    analyzePaths(graph) {
-      const nodes = graph.getNodes();
-      const edges = graph.getEdges();
-      
-      // 构建G6需要的数据格式
-      const data = {
-        nodes: nodes.map(node => node.getModel()),
-        edges: edges.map(edge => edge.getModel())
-      };
-
-      let totalLength = 0;
-      let pathCount = 0;
-      let maxLength = 0;
-      let maxPath = null;
-
-      // 使用G6的Dijkstra算法计算所有节点对之间的最短路径
-      nodes.forEach((source, i) => {
-        const sourceId = source.getModel().id;
-        const dijkstra = G6.Algorithm.dijkstra(data, sourceId);
+        const data = {
+            nodes: graph.save().nodes,
+            edges: graph.save().edges
+        };
         
-        nodes.forEach((target, j) => {
-          if (i < j) {  // 只计算一次
-            const targetId = target.getModel().id;
-            const distance = dijkstra.distances[targetId];
+        // 使用 G6 内置的度中心性算法
+        const centralityResults = G6.Algorithm.degreeCloseness(data);
+        
+        // 将结果转换为数组并排序
+        const sortedNodes = Object.entries(centralityResults)
+            .sort(([, a], [, b]) => b - a)
+            .slice(0, 5);
+
+        // 更新UI
+        const top5List = document.getElementById('centralityTop5');
+        top5List.innerHTML = '';
+        sortedNodes.forEach(([nodeId, score]) => {
+            const node = graph.findById(nodeId);
+            const nodeInfo = node.getModel();
+            const li = document.createElement('li');
+            li.textContent = `${nodeInfo.label || nodeId}: ${score.toFixed(3)}`;
+            top5List.appendChild(li);
             
-            if (distance && distance !== Infinity) {
-              totalLength += distance;
-              pathCount++;
-              
-              if (distance > maxLength) {
-                maxLength = distance;
-                maxPath = dijkstra.path[targetId];
-              }
-            }
-          }
+            // 高亮重要节点
+            graph.setItemState(node, 'highlight', true);
         });
-      });
 
-      const avgLength = pathCount > 0 ? totalLength / pathCount : 0;
+        return sortedNodes;
+    },
 
-      // 更新UI
-      document.getElementById('avgPathLength').textContent = avgLength.toFixed(2);
-      document.getElementById('maxPathLength').textContent = maxLength;
+    // 社区检测 - 使用 G6.Algorithm.louvain
+    detectCommunities(graph) {
+        const data = {
+            nodes: graph.save().nodes,
+            edges: graph.save().edges
+        };
+        
+        // 使用 G6 内置的 Louvain 社区检测算法
+        const communities = G6.Algorithm.louvain(data);
+        
+        // 统计社区信息
+        const communityCount = Object.keys(communities).length;
+        const communitySizes = Object.values(communities).reduce((acc, curr) => {
+            acc[curr] = (acc[curr] || 0) + 1;
+            return acc;
+        }, {});
+        const maxCommunitySize = Math.max(...Object.values(communitySizes));
 
-      // 高亮显示最长路径
-      if (maxPath) {
-        for (let i = 0; i < maxPath.length - 1; i++) {
-          const edge = graph.findEdge(maxPath[i], maxPath[i + 1]);
-          if (edge) {
-            graph.setItemState(edge, 'highlight', true);
-          }
+        // 更新UI
+        document.getElementById('communityCount').textContent = communityCount;
+        document.getElementById('maxCommunitySize').textContent = maxCommunitySize;
+
+        // 为不同社区的节点设置不同颜色
+        Object.entries(communities).forEach(([nodeId, communityId]) => {
+            const node = graph.findById(nodeId);
+            if (node) {
+                const color = `hsl(${(communityId * 360) / communityCount}, 70%, 70%)`;
+                graph.updateItem(node, {
+                    style: {
+                        fill: color
+                    }
+                });
+            }
+        });
+
+        return {
+            communities,
+            count: communityCount,
+            maxSize: maxCommunitySize
+        };
+    },
+
+    // 路径分析 - 使用 G6.Algorithm.SPFA
+    analyzePaths(graph) {
+        const data = {
+            nodes: graph.save().nodes,
+            edges: graph.save().edges
+        };
+        
+        let totalLength = 0;
+        let pathCount = 0;
+        let maxLength = 0;
+        let maxPath = null;
+
+        // 使用 G6 内置的 SPFA 最短路径算法
+        data.nodes.forEach((source, i) => {
+            const shortestPaths = G6.Algorithm.SPFA(data, source.id);
+            
+            data.nodes.forEach((target, j) => {
+                if (i < j) {
+                    const path = shortestPaths[target.id];
+                    if (path && path.length > 0) {
+                        const distance = path.length - 1;
+                        totalLength += distance;
+                        pathCount++;
+                        
+                        if (distance > maxLength) {
+                            maxLength = distance;
+                            maxPath = path;
+                        }
+                    }
+                }
+            });
+        });
+
+        const avgLength = pathCount > 0 ? totalLength / pathCount : 0;
+
+        // 更新UI
+        document.getElementById('avgPathLength').textContent = avgLength.toFixed(2);
+        document.getElementById('maxPathLength').textContent = maxLength;
+
+        // 高亮显示最长路径
+        if (maxPath) {
+            for (let i = 0; i < maxPath.length - 1; i++) {
+                const edge = graph.findEdge(maxPath[i], maxPath[i + 1]);
+                if (edge) {
+                    graph.setItemState(edge, 'highlight', true);
+                }
+            }
         }
-      }
 
-      return {
-        avgLength,
-        maxLength,
-        maxPath
-      };
+        return {
+            avgLength,
+            maxLength,
+            maxPath
+        };
     }
   };
 
