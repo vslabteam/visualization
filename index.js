@@ -742,7 +742,7 @@ document.addEventListener('DOMContentLoaded', function() {
     calculateCycleRisk(cycle, data) {
       let riskScore = 0;
 
-      // 基础分数：环路长度
+      // 基础分数：环���长度
       riskScore += cycle.length * 10;
 
       // 计算环路中的交易总额
@@ -1780,7 +1780,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="community-results">
           <div>社区总数: ${communityStats.count}</div>
           <div>最大社区规模: ${communityStats.maxSize}</div>
-          <div>平��社区规模: ${communityStats.avgSize.toFixed(2)}</div>
+          <div>平社区规模: ${communityStats.avgSize.toFixed(2)}</div>
           <div class="community-distribution">
             ${this.renderCommunityDistribution(communityStats.distribution)}
           </div>
@@ -2030,7 +2030,7 @@ document.addEventListener('DOMContentLoaded', function() {
       };
     },
 
-    // 生成网络���扑图
+    // 生成网络拓扑图
     generateNetworkTopologyChart() {
       const data = graph.save();
       const nodeTypes = {};
@@ -2604,7 +2604,7 @@ document.addEventListener('DOMContentLoaded', function() {
         degree: edges.length,
         inDegree: edges.filter(e => e.target === node.id).length,
         outDegree: edges.filter(e => e.source === node.id).length,
-        transactionAmount: edges.reduce((sum, e) => sum + (e.amount || 0), 0), 0), 0),
+        transactionAmount: edges.reduce((sum, e) => sum + (e.amount || 0), 0),
         transactionFrequency: this.calculateTransactionFrequency(edges),
         riskScore: this.calculateNodeRiskScore(node, edges)
       };
@@ -3960,7 +3960,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     },
 
-    // ���新性能指标
+    // 更新性能指标
     updateMetrics() {
       const startTime = performance.now();
       
@@ -5936,7 +5936,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return events.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
     },
 
-    // 收集证据
+    // 收集证
     collectEvidence() {
       return {
         markers: ForensicsTools.evidence.markers,
@@ -6021,7 +6021,7 @@ document.addEventListener('DOMContentLoaded', function() {
       doc.setFontSize(20);
       doc.text('欺诈分析调查报告', 20, 20);
       
-      // 添加元数���
+      // 添加元数
       doc.setFontSize(12);
       doc.text(`案件编号: ${evidence.metadata.caseId}`, 20, 40);
       doc.text(`调查人员: ${evidence.metadata.investigator}`, 20, 50);
