@@ -742,7 +742,7 @@ document.addEventListener('DOMContentLoaded', function() {
     calculateCycleRisk(cycle, data) {
       let riskScore = 0;
 
-      // 基础分数：环���长度
+      // 基础分数：环长度
       riskScore += cycle.length * 10;
 
       // 计算环路中的交易总额
@@ -1565,7 +1565,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <body>
             <h1>欺诈分析报告</h1>
             <div class="metadata">
-              <p>生成时间：${report.timestamp}</p>
+              <p>���成时间：${report.timestamp}</p>
               <p>分析人员：${report.metadata.investigator}</p>
               <p>案编号：${report.metadata.caseId}</p>
             </div>
@@ -2604,7 +2604,7 @@ document.addEventListener('DOMContentLoaded', function() {
         degree: edges.length,
         inDegree: edges.filter(e => e.target === node.id).length,
         outDegree: edges.filter(e => e.source === node.id).length,
-        transactionAmount: edges.reduce((sum, e) => sum + (e.amount || 0), 0),
+        transactionAmount: edges.reduce((sum, e) => sum + (e.amount || 0),
         transactionFrequency: this.calculateTransactionFrequency(edges),
         riskScore: this.calculateNodeRiskScore(node, edges)
       };
@@ -3151,7 +3151,7 @@ document.addEventListener('DOMContentLoaded', function() {
       info.className = 'path-info';
       info.innerHTML = `
         <h3>路径 ${index + 1}</h3>
-        <div>路径长度: ${path.length - 1} 步</div>
+        <div>��径长度: ${path.length - 1} 步</div>
         <div>节点数量: ${path.length}</div>
         <div class="path-details">
           ${this.renderPathDetails(path)}
