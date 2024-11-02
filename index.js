@@ -164,7 +164,7 @@ document.addEventListener('DOMContentLoaded', function() {
         endArrow: true
       }
     },
-    // 使用 canvas 渲染器，移除 WebGL 相关配置
+    // 使用 canvas 渲染器
     renderer: 'canvas',
     // 添加布局配置
     layout: {
@@ -172,8 +172,20 @@ document.addEventListener('DOMContentLoaded', function() {
       preventOverlap: true,
       nodeStrength: -50,
       edgeStrength: 0.1
+    },
+    // 添加基础交互配置
+    modes: {
+      default: [
+        'drag-canvas',
+        'zoom-canvas',
+        'drag-node',
+        'click-select'
+      ]
     }
   });
+
+  // 初始化时调用基础优化
+  RenderOptimizer.enableBasicOptimizations();
 
   // 定义控制函数
   const graphControls = {
@@ -803,7 +815,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return Math.min(30, Math.round(30 * (1 - avgInterval / (24 * 60 * 60 * 1000))));
     },
 
-    // 计算节点类型风险分数
+    // ���算节点类型风险分数
     calculateTypeRisk(cycle, data) {
       const nodeTypes = cycle.map(nodeId => {
         const node = data.nodes.find(n => n.id === nodeId);
@@ -1156,7 +1168,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const loadingTip = createLoadingTip();
     const worker = new Worker('dataWorker.js');
 
-    // 处 Worker 消息
+    // 处 Worker 息
     worker.onmessage = function(e) {
       const { type, data, meta } = e.data;
 
@@ -1509,7 +1521,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const timelineEvents = [];
       const data = graph.save();
 
-      // 收集所有时���相关的事件
+      // 收集所有时相关的事件
       data.edges.forEach(edge => {
         const sourceNode = data.nodes.find(n => n.id === edge.source);
         const targetNode = data.nodes.find(n => n.id === edge.target);
@@ -4028,7 +4040,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // 添加统计信息
       doc.text('数据统计', 20, 70);
       doc.text(`节点总数: ${report.graphInfo.nodes}`, 30, 80);
-      doc.text(`边总数: ${report.graphInfo.edges}`, 30, 90);
+      doc.text(`边总���: ${report.graphInfo.edges}`, 30, 90);
       
       // 添加异常发现
       doc.text('异常发现', 20, 110);
@@ -4310,7 +4322,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 图形渲染器增强
   const GraphRenderer = {
-    // 自定义节点渲染
+    // 自定义节点���染
     registerCustomRenderers() {
       // 高性能节点渲染器
       G6.registerNode('performance-node', {
@@ -5860,7 +5872,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // 添加封面
       doc.setFontSize(20);
-      doc.text('欺诈分析调查报告', 20, 20);
+      doc.text('���诈分析调查报告', 20, 20);
       
       // 添加元数
       doc.setFontSize(12);
@@ -6068,6 +6080,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const icon = this.querySelector('.toggle-icon');
             icon.textContent = content.classList.contains('collapsed') ? '▶' : '▼';
         });
+    });
+  });
+
+  // 简化事件监听
+  graph.on('afterzoom', (e) => {
+    const zoom = e.getZoom ? e.getZoom() : 1;
+    graph.getNodes().forEach(node => {
+      RenderOptimizer.adjustNodeDetail(node, zoom);
     });
   });
 }); 
