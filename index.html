@@ -48,7 +48,11 @@
         <div class="search-container">
             <div class="panel-title">节点搜索</div>
             <div class="search-box">
-                <input type="text" id="nodeSearch" placeholder="输入节点ID或属性搜索...">
+                <label for="nodeSearch">节点搜索：</label>
+                <input type="text" 
+                       id="nodeSearch" 
+                       title="输入节点ID或属性搜索"
+                       placeholder="输入节点ID或属性搜索...">
                 <button class="search-button" onclick="searchNodes()">搜索</button>
             </div>
             <div class="search-results" id="searchResults"></div>
@@ -175,7 +179,10 @@
                 </div>
                 <div id="layout-settings" class="section-content">
                     <div class="control-item">
-                        <select id="layoutSelect" onchange="changeLayout()">
+                        <label for="layoutSelect">选择布局：</label>
+                        <select id="layoutSelect" 
+                                title="选择图布局方式"
+                                onchange="changeLayout()">
                             <option value="force">力导向布局</option>
                             <option value="circular">环形布局</option>
                             <option value="radial">辐射布局</option>
@@ -195,7 +202,9 @@
                 </div>
                 <div id="analysis-tools" class="section-content">
                     <div class="control-item">
-                        <select id="algorithmSelect">
+                        <label for="algorithmSelect">选择算法：</label>
+                        <select id="algorithmSelect" 
+                                title="选择分析算法">
                             <option value="centrality">中心度分析</option>
                             <option value="community">社区检测</option>
                             <option value="shortestPath">最短路径</option>

@@ -141,40 +141,31 @@ document.addEventListener('DOMContentLoaded', function() {
     return;
   }
 
+  // 修改 G6 初始化配置
   const graph = new G6.Graph({
     container: 'container',
-    width: container.offsetWidth,
-    height: container.offsetHeight,
+    width: container.scrollWidth,
+    height: container.scrollHeight,
     modes: {
       default: ['drag-canvas', 'zoom-canvas', 'drag-node']
     },
     defaultNode: {
-      type: 'circle',
-      size: 30,
+        size: 20,
       style: {
         fill: '#91d5ff',
         stroke: '#40a9ff',
-        lineWidth: 2
-      },
-      labelCfg: {
-        position: 'bottom',
-        offset: 10,
-        style: {
-          fill: '#333',
-          fontSize: 12
-        }
+            lineWidth: 1
       }
     },
     defaultEdge: {
-      type: 'line',
       style: {
         stroke: '#91d5ff',
         lineWidth: 1,
         endArrow: true
       }
     },
-    fitView: true,
-    animate: true
+    // 移除 WebGL 相关配置
+    // renderer: 'webgl'  // 删除这行
   });
 
   // 定义控制函数
@@ -1137,7 +1128,7 @@ document.addEventListener('DOMContentLoaded', function() {
   addMinimap();
   enableDragUpload();
 
-  // 在图实例创建后添加以下代码
+  // 在图实例创建后添���以下代码
 
   // 创建加载提示
   const createLoadingTip = () => {
@@ -2620,7 +2611,6 @@ document.addEventListener('DOMContentLoaded', function() {
         transactionFrequency: this.calculateTransactionFrequency(edges),
         riskScore: this.calculateNodeRiskScore(node, edges)
       };
-      
     },
 
     // 计算交易频率
@@ -4139,7 +4129,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 在现有代码中添加以下函数
 
-  // 标记节点
+  // 标���节点
   function markNode(nodeId) {
     const node = graph.findById(nodeId);
     if (!node) return;
@@ -4803,7 +4793,7 @@ document.addEventListener('DOMContentLoaded', function() {
       };
     },
 
-    // 数据分块加载
+    // 数��分块加载
     createDataChunks(data, chunkSize = 1000) {
       const chunks = [];
       for (let i = 0; i < data.nodes.length; i += chunkSize) {
@@ -5940,7 +5930,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <!DOCTYPE html>
         <html>
           <head>
-            <title>欺诈分析调查报告</title>
+            <title>欺诈分析调查报���</title>
             <style>
               ${this.getReportStyles()}
             </style>
@@ -6095,4 +6085,23 @@ document.addEventListener('DOMContentLoaded', function() {
       <div class="loading-text">数据加载中...</div>
     </div>
   `;
+
+  // 添加面板展开/折叠功能
+  document.addEventListener('DOMContentLoaded', function() {
+    // 为所有 section-header 添加点击事件
+    document.querySelectorAll('.section-header').forEach(header => {
+        header.addEventListener('click', function() {
+            // 获取对应的内容区域
+            const sectionId = this.getAttribute('data-section');
+            const content = document.getElementById(sectionId);
+            
+            // 切换内容区域的显示状态
+            content.classList.toggle('collapsed');
+            
+            // 更新箭头图标
+            const icon = this.querySelector('.toggle-icon');
+            icon.textContent = content.classList.contains('collapsed') ? '▶' : '▼';
+        });
+    });
+  });
 }); 
