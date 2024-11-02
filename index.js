@@ -345,17 +345,30 @@ document.addEventListener('DOMContentLoaded', function() {
       return response.json();
     })
     .then(data => {
-      console.log('原始数据:', data); // 打印原始数据
+      console.log('原始数据:', data);
       const processedData = preprocessData(data);
-      console.log('处理后的数据:', processedData); // 打印处理后的数据
+      console.log('处理后的数据:', processedData);
       
       if (!processedData.nodes || !processedData.edges) {
         throw new Error('数据格式不正确');
       }
       
+      // 直接渲染数据，不使用分块加载
       graph.data(processedData);
       graph.render();
+      
+      // 更新统计信息
       updateStats(processedData);
+      
+      // 初始化时间轴
+      TimelineController.initialize(processedData);
+      
+      // 适应画布
+      graph.fitView();
+      
+      console.log('图渲染完成');
+      console.log('节点数量:', graph.getNodes().length);
+      console.log('边数量:', graph.getEdges().length);
     })
     .catch(error => {
       console.error('加载数据失败，详细错误:', error);
@@ -4393,7 +4406,7 @@ document.addEventListener('DOMContentLoaded', function() {
     startMemoryCleanup() {
       setInterval(() => {
         this.cleanupUnusedResources();
-      }, 60000); // 每分执行一次
+      }, 60000); // 每���执行一次
     },
 
     // 清理未使用的资源
@@ -4928,7 +4941,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // 数据验证
       this.validateData(data);
 
-      // 数据���换
+      // 数据换
       const processedData = this.transformData(data);
 
       // 数据清洗
@@ -5219,7 +5232,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     },
 
-    // 格式化工具方法
+    // 格式化工具方��
     formatAmount(amount) {
       return new Intl.NumberFormat('zh-CN', {
         style: 'currency',
