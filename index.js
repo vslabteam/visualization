@@ -163,7 +163,9 @@ document.addEventListener('DOMContentLoaded', function() {
         lineWidth: 1,
         endArrow: true
       }
-    }
+    },
+    // 使用 canvas 渲染器
+    renderer: 'canvas'
   });
 
   // 定义控制函数
@@ -573,7 +575,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return totalDistance / count;
     },
 
-    // 子图挖掘
+    // 子图���掘
     mineSubgraphs(graph, minSize = 3, minDensity = 0.5) {
       const data = graph.save();
       const subgraphs = [];
@@ -702,7 +704,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return this.filterSignificantCycles(cycles);
     },
 
-    // 分环路类型
+    // 分环路类
     analyzeCycleType(cycle, data) {
       const nodeTypes = cycle.map(nodeId => {
         const node = data.nodes.find(n => n.id === nodeId);
@@ -1217,7 +1219,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // 使用 GPU 加速
       graph.get('canvas').set('enableCSSTransforms', true);
       
-      // 节点数量大时禁用动画
+      // 节点数量大时禁用画
       if (graph.getNodes().length > 1000) {
         graph.updateLayout({
           animate: false
@@ -2054,7 +2056,7 @@ document.addEventListener('DOMContentLoaded', function() {
       };
     },
 
-    // 计算��的密度
+    // 计算的密度
     calculateGraphDensity() {
       const data = graph.save();
       const nodeCount = data.nodes.length;
@@ -4234,21 +4236,24 @@ document.addEventListener('DOMContentLoaded', function() {
         const canvas = graph.get('canvas');
         if (!canvas) return;
 
-        const zoom = graph.getZoom ? graph.getZoom() : 1;
-        const point = graph.getCanvasPoint ? graph.getCanvasPoint() : {x: 0, y: 0};
+        const zoom = graph.getZoom() || 1;
+        const point = graph.getCanvasPoint() || {x: 0, y: 0};
+        const width = canvas.get('width');
+        const height = canvas.get('height');
         
         nodes.forEach(node => {
           const bbox = node.getBBox();
           if (bbox) {
-            const visible = this.isInViewport(bbox, {
+            const visible = this.isNodeInViewport(node, {
           x: -point.x / zoom,
           y: -point.y / zoom,
-              width: canvas.get('width') / zoom,
-              height: canvas.get('height') / zoom
+              width: width / zoom,
+              height: height / zoom
             });
           
           if (visible) {
             node.show();
+              this.adjustNodeDetail(node, zoom);
           } else {
             node.hide();
             }
@@ -4256,13 +4261,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
       };
 
-      // 添加事件监听
       graph.on('afterrender', viewportCheck);
       graph.on('viewportchange', viewportCheck);
     },
 
-    // 检查是否在视口内
-    isInViewport(bbox, viewport) {
+    isNodeInViewport(node, viewport) {
+      const bbox = node.getBBox();
       return !(bbox.x > viewport.x + viewport.width ||
               bbox.x + bbox.width < viewport.x ||
               bbox.y > viewport.y + viewport.height ||
@@ -5272,7 +5276,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const WebGLRenderer = {
     // 初始化WebGL渲染器
     initialize() {
-      // 简单检查是否支持 WebGL
+      // 仅做基础检查，不再尝试配置 WebGL
       try {
         const canvas = document.createElement('canvas');
         const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
@@ -5431,7 +5435,7 @@ document.addEventListener('DOMContentLoaded', function() {
       this.updateRiskDistribution(data);
     },
 
-    // 更新时间分布图表
+    // 更新时间分布图���
     updateTimeDistribution(data) {
       const timeData = this.processTimeData(data);
       this.timeDistributionChart.data(timeData);
