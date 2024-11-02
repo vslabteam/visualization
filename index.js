@@ -141,13 +141,56 @@ document.addEventListener('DOMContentLoaded', function() {
     return;
   }
 
-  // 修改 G6 初始化配置
+  // 首先定义 RenderOptimizer
+  const RenderOptimizer = {
+    // 基础渲染优化
+    enableBasicOptimizations() {
+      if (!graph || !graph.getNodes) return;
+
+      // 节点数量大时禁用动画
+      if (graph.getNodes().length > 1000) {
+        graph.updateLayout({
+          animate: false
+        });
+      }
+
+      // 使用 GPU 加速
+      const canvas = graph.get('canvas');
+      if (canvas) {
+        canvas.set('enableCSSTransforms', true);
+      }
+    },
+
+    // 根据缩放级别调整节点细节
+    adjustNodeDetail(node, zoom) {
+      if (!node || !node.getModel) return;
+      
+      if (zoom < 0.5) {
+        graph.updateItem(node, {
+          labelCfg: { style: { opacity: 0 } },
+          style: { lineWidth: 1 }
+        });
+      } else if (zoom < 1) {
+        graph.updateItem(node, {
+          labelCfg: { style: { opacity: 0.5 } },
+          style: { lineWidth: 2 }
+        });
+      } else {
+        graph.updateItem(node, {
+          labelCfg: { style: { opacity: 1 } },
+          style: { lineWidth: 3 }
+        });
+      }
+    }
+  };
+
+  // 然后初始化图实例
   const graph = new G6.Graph({
     container: 'container',
     width: container.scrollWidth,
     height: container.scrollHeight,
     modes: {
-      default: ['drag-canvas', 'zoom-canvas', 'drag-node']
+      default: ['drag-canvas', 'zoom-canvas', 'drag-node', 'click-select']
     },
     defaultNode: {
       size: 20,
@@ -172,20 +215,19 @@ document.addEventListener('DOMContentLoaded', function() {
       preventOverlap: true,
       nodeStrength: -50,
       edgeStrength: 0.1
-    },
-    // 添加基础交互配置
-    modes: {
-      default: [
-        'drag-canvas',
-        'zoom-canvas',
-        'drag-node',
-        'click-select'
-      ]
     }
   });
 
   // 初始化时调用基础优化
   RenderOptimizer.enableBasicOptimizations();
+
+  // 添加缩放事件监听
+  graph.on('afterzoom', (e) => {
+    const zoom = e.getZoom ? e.getZoom() : 1;
+    graph.getNodes().forEach(node => {
+      RenderOptimizer.adjustNodeDetail(node, zoom);
+    });
+  });
 
   // 定义控制函数
   const graphControls = {
@@ -815,7 +857,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return Math.min(30, Math.round(30 * (1 - avgInterval / (24 * 60 * 60 * 1000))));
     },
 
-    // ���算节点类型风险分数
+    // 算节点类型风险分数
     calculateTypeRisk(cycle, data) {
       const nodeTypes = cycle.map(nodeId => {
         const node = data.nodes.find(n => n.id === nodeId);
@@ -4040,7 +4082,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // 添加统计信息
       doc.text('数据统计', 20, 70);
       doc.text(`节点总数: ${report.graphInfo.nodes}`, 30, 80);
-      doc.text(`边总���: ${report.graphInfo.edges}`, 30, 90);
+      doc.text(`边总: ${report.graphInfo.edges}`, 30, 90);
       
       // 添加异常发现
       doc.text('异常发现', 20, 110);
@@ -4322,7 +4364,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 图形渲染器增强
   const GraphRenderer = {
-    // 自定义节点���染
+    // 自定义节点染
     registerCustomRenderers() {
       // 高性能节点渲染器
       G6.registerNode('performance-node', {
@@ -5872,7 +5914,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // 添加封面
       doc.setFontSize(20);
-      doc.text('���诈分析调查报告', 20, 20);
+      doc.text('诈骗分析调查报告', 20, 20);
       
       // 添加元数
       doc.setFontSize(12);
@@ -5908,7 +5950,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <!DOCTYPE html>
         <html>
           <head>
-            <title>欺诈分析调查报</title>
+            <title>诈骗分析调查报告</title>
             <style>
               ${this.getReportStyles()}
             </style>

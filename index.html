@@ -162,13 +162,29 @@
                 </div>
                 <div id="view-settings" class="section-content">
                     <div class="control-item">
-                        <div class="info-label">节点大小</div>
-                        <input type="range" min="10" max="50" value="20" onchange="updateNodeSize(this.value)">
+                        <label for="nodeSizeRange">节点大小：</label>
+                        <input type="range" 
+                               id="nodeSizeRange"
+                               min="10" 
+                               max="50" 
+                               value="20" 
+                               title="调整节点大小"
+                               aria-label="节点大小调节"
+                               onchange="updateNodeSize(this.value)">
                         
-                        <div class="info-label">线粗细</div>
-                        <input type="range" min="1" max="10" value="2" onchange="updateEdgeWidth(this.value)">
+                        <label for="edgeWidthRange">线粗细：</label>
+                        <input type="range" 
+                               id="edgeWidthRange"
+                               min="1" 
+                               max="10" 
+                               value="2" 
+                               title="调整线条粗细"
+                               aria-label="线条粗细调节"
+                               onchange="updateEdgeWidth(this.value)">
                         
-                        <button class="control-button" onclick="toggleNodeLabels()">显示/隐藏标签</button>
+                        <button class="control-button" 
+                                title="切换节点标签显示"
+                                onclick="toggleNodeLabels()">显示/隐藏标签</button>
                     </div>
                 </div>
             </div>
