@@ -164,8 +164,15 @@ document.addEventListener('DOMContentLoaded', function() {
         endArrow: true
       }
     },
-    // 使用 canvas 渲染器
-    renderer: 'canvas'
+    // 使用 canvas 渲染器，移除 WebGL 相关配置
+    renderer: 'canvas',
+    // 添加布局配置
+    layout: {
+      type: 'force',
+      preventOverlap: true,
+      nodeStrength: -50,
+      edgeStrength: 0.1
+    }
   });
 
   // 定义控制函数
@@ -575,7 +582,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return totalDistance / count;
     },
 
-    // 子图���掘
+    // 子图掘
     mineSubgraphs(graph, minSize = 3, minDensity = 0.5) {
       const data = graph.save();
       const subgraphs = [];
@@ -1374,7 +1381,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return cycles;
     },
 
-    // 检测快速连续交易
+    // 检测快速连交易
     detectRapidTransactions(data) {
       const rapidTransactions = [];
       const timeWindow = 300000; // 5分钟内
@@ -1502,7 +1509,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const timelineEvents = [];
       const data = graph.save();
 
-      // 收集所有时间相关的事件
+      // 收集所有时���相关的事件
       data.edges.forEach(edge => {
         const sourceNode = data.nodes.find(n => n.id === edge.source);
         const targetNode = data.nodes.find(n => n.id === edge.target);
@@ -4236,26 +4243,30 @@ document.addEventListener('DOMContentLoaded', function() {
         const canvas = graph.get('canvas');
         if (!canvas) return;
 
+        // 获取可视区域信息
+        const bbox = graph.get('group').getBBox();
         const zoom = graph.getZoom() || 1;
-        const point = graph.getCanvasPoint() || {x: 0, y: 0};
-        const width = canvas.get('width');
-        const height = canvas.get('height');
-        
+        const matrix = graph.get('group').getMatrix() || [1, 0, 0, 0, 1, 0, 0, 0, 1];
+        const point = {
+          x: matrix[6],
+          y: matrix[7]
+        };
+
         nodes.forEach(node => {
-          const bbox = node.getBBox();
-          if (bbox) {
-            const visible = this.isNodeInViewport(node, {
-          x: -point.x / zoom,
-          y: -point.y / zoom,
-              width: width / zoom,
-              height: height / zoom
+          const nodeBBox = node.getBBox();
+          if (nodeBBox) {
+            const visible = this.isNodeVisible(nodeBBox, {
+              x: -point.x / zoom,
+              y: -point.y / zoom,
+              width: canvas.get('width') / zoom,
+              height: canvas.get('height') / zoom
             });
-          
-          if (visible) {
-            node.show();
+            
+            if (visible) {
+              node.show();
               this.adjustNodeDetail(node, zoom);
-          } else {
-            node.hide();
+            } else {
+              node.hide();
             }
           }
         });
@@ -4263,14 +4274,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
       graph.on('afterrender', viewportCheck);
       graph.on('viewportchange', viewportCheck);
+      graph.on('afterzoom', viewportCheck);
     },
 
-    isNodeInViewport(node, viewport) {
-      const bbox = node.getBBox();
-      return !(bbox.x > viewport.x + viewport.width ||
-              bbox.x + bbox.width < viewport.x ||
-              bbox.y > viewport.y + viewport.height ||
-              bbox.y + bbox.height < viewport.y);
+    isNodeVisible(nodeBBox, viewport) {
+      return !(nodeBBox.x > viewport.x + viewport.width ||
+              nodeBBox.x + nodeBBox.width < viewport.x ||
+              nodeBBox.y > viewport.y + viewport.height ||
+              nodeBBox.y + nodeBBox.height < viewport.y);
     },
 
     // 根据缩放级别调整节点细节
@@ -4387,7 +4398,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // WebGL 渲染支持
     enableWebGLRenderer() {
       try {
-        // 检查是否支持 WebGL
+        // 检查是支持 WebGL
         const canvas = document.createElement('canvas');
         const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
         const isWebGLSupported = !!gl;
@@ -5276,7 +5287,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const WebGLRenderer = {
     // 初始化WebGL渲染器
     initialize() {
-      // 仅做基础检查，不再尝试配置 WebGL
+      // 仅检查 WebGL 支持，不进行配置
       try {
         const canvas = document.createElement('canvas');
         const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
@@ -5353,7 +5364,8 @@ document.addEventListener('DOMContentLoaded', function() {
   // 在图实例创建时初始化WebGL渲染器
   const renderer = WebGLRenderer.initialize();
   if (renderer) {
-    graph.set('renderer', renderer);
+    console.log('WebGL 支持已检测');
+    // 不再尝试设置 renderer
   }
 
   // 图表可视化模块
@@ -5435,7 +5447,7 @@ document.addEventListener('DOMContentLoaded', function() {
       this.updateRiskDistribution(data);
     },
 
-    // 更新时间分布图���
+    // 更新时间分布图
     updateTimeDistribution(data) {
       const timeData = this.processTimeData(data);
       this.timeDistributionChart.data(timeData);

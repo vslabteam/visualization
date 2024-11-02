@@ -246,18 +246,41 @@
                 <div id="filter-tools" class="section-content">
                     <div class="filter-section">
                         <div class="filter-group">
-                            <label>时间范围</label>
-                            <input type="date" id="startDate" onchange="applyFilters()">
-                            <input type="date" id="endDate" onchange="applyFilters()">
+                            <label for="startDate">开始时间：</label>
+                            <input type="date" 
+                                   id="startDate" 
+                                   title="选择开始时间"
+                                   aria-label="开始时间"
+                                   onchange="applyFilters()">
+                               
+                            <label for="endDate">结束时间：</label>
+                            <input type="date" 
+                                   id="endDate" 
+                                   title="选择结束时间"
+                                   aria-label="结束时间"
+                                   onchange="applyFilters()">
                         </div>
                         <div class="filter-group">
-                            <label>交易金额</label>
-                            <input type="number" id="minAmount" placeholder="最小金额">
-                            <input type="number" id="maxAmount" placeholder="最大金额">
+                            <label for="minAmount">最小金额：</label>
+                            <input type="number" 
+                                   id="minAmount" 
+                                   title="输入最小金额"
+                                   aria-label="最小金额"
+                                   placeholder="最小金额">
+                               
+                            <label for="maxAmount">最大金额：</label>
+                            <input type="number" 
+                                   id="maxAmount" 
+                                   title="输入最大金额"
+                                   aria-label="最大金额"
+                                   placeholder="最大金额">
                         </div>
                         <div class="filter-group">
-                            <label>风险等级</label>
-                            <select id="riskLevel" onchange="applyFilters()">
+                            <label for="riskLevel">风险等级：</label>
+                            <select id="riskLevel" 
+                                    title="选择风险等级"
+                                    aria-label="风险等级选择"
+                                    onchange="applyFilters()">
                                 <option value="all">全部</option>
                                 <option value="high">高风险</option>
                                 <option value="medium">中风险</option>
