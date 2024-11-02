@@ -187,7 +187,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // 优化渲染性能
     optimizeRendering() {
         // 使用 GPU 加速
-        graph.get('canvas').set('enableCSSTransforms', true);
+        const canvas = graph.get('canvas');
+        if (canvas) {
+            canvas.set('enableCSSTransforms', true);
+        }
         
         // 节点数量大时禁用动画
         if (graph.getNodes().length > 1000) {
@@ -2706,7 +2709,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return edges.length / (timeSpan / (24 * 60 * 60 * 1000)); // 每天的交易频率
     },
 
-    // 计算节点风险分数
+    // 计算��点风险分数
     calculateNodeRiskScore(node, edges) {
       let score = 0;
 
