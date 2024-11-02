@@ -299,7 +299,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   };
 
-  // 将控制函数绑定到 window 对象
+  // 将控制函数���定到 window 对象
   Object.assign(window, graphControls);
 
   // 修改数据预处理函数
@@ -549,7 +549,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return betweenness;
     },
 
-    // 查找所有最短路径
+    // 查找所有��短路径
     findAllShortestPaths(start, end, edges) {
       const paths = [];
       const queue = [[start]];
@@ -1255,80 +1255,78 @@ document.addEventListener('DOMContentLoaded', function() {
     const loadingTip = createLoadingTip();
     const worker = new Worker('dataWorker.js');
 
-    // 处 Worker 息
+    // 处理 Worker 消息
     worker.onmessage = function(e) {
-      const { type, data, meta } = e.data;
+        const { type, data, meta } = e.data;
 
-      switch(type) {
-        case 'initData':
-          // 初始化图数据
-          totalChunks = meta.totalChunks;
-          graph.data(data.chunk);
-          graph.render();
-          updateLoadingProgress(1, totalChunks);
-          
-          // 如果数据量大，启动分块加载
-          if (totalChunks > 1) {
-            requestNextChunk();
-          } else {
-            hideLoading();
-          }
-          break;
+        switch(type) {
+            case 'initData':
+                // 初始化图数据
+                totalChunks = meta.totalChunks;
+                graph.data(data.chunk);
+                graph.render();
+                updateLoadingProgress(1, totalChunks);
+                
+                // 如果数据量大，启动分块加载
+                if (totalChunks > 1) {
+                    requestNextChunk();
+                } else {
+                    hideLoading();
+                }
+                break;
 
-        case 'chunkData':
-          // 添加新的数据块
-          currentChunk++;
-          const { nodes, edges } = data;
-          
-          // 批量加新节点和
-          graph.addItems('node', nodes);
-          graph.addItems('edge', edges);
-          
-          updateLoadingProgress(currentChunk, totalChunks);
-          
-          if (currentChunk < totalChunks) {
-            requestNextChunk();
-          } else {
-            hideLoading();
-            graph.fitView();
-          }
-          break;
+            case 'chunkData':
+                // 添加新的数据块
+                currentChunk++;
+                const { nodes, edges } = data;
+                
+                // 批量添加新节点和边
+                graph.addItems('node', nodes);
+                graph.addItems('edge', edges);
+                
+                updateLoadingProgress(currentChunk, totalChunks);
+                
+                if (currentChunk < totalChunks) {
+                    requestNextChunk();
+                } else {
+                    hideLoading();
+                    graph.fitView();
+                }
+                break;
 
-        case 'error':
-          console.error('数据处理错误:', data.error);
-          hideLoading();
-          break;
-      }
+            case 'error':
+                console.error('数据处理错误:', data.error);
+                hideLoading();
+                break;
+        }
     };
 
     // 请求下一块数据
     const requestNextChunk = () => {
-      worker.postMessage({
-        type: 'loadChunk',
-        params: { startIndex: currentChunk * CHUNK_SIZE }
-      });
+        worker.postMessage({
+            type: 'loadChunk',
+            params: { startIndex: currentChunk * CHUNK_SIZE }
+        });
     };
 
     // 更新加载进度
     const updateLoadingProgress = (current, total) => {
-      const progress = Math.round((current / total) * 100);
-      document.getElementById('loadingProgress').textContent = progress;
+        const progress = Math.round((current / total) * 100);
+        document.getElementById('loadingProgress').textContent = progress;
     };
 
     // 隐藏加载提示
     const hideLoading = () => {
-      loadingTip.style.display = 'none';
+        loadingTip.style.display = 'none';
     };
 
     return {
-      worker,
-      optimizeRendering
+        worker
     };
   };
 
   // 在图实例创建后初始化优化
-  const { worker, optimizeRendering } = optimizeDataRendering();
-  optimizeRendering();
+  const { worker } = optimizeDataRendering();
 
   // 添加相关样式
   const style = document.createElement('style');
@@ -1614,7 +1612,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
       });
 
-      // 按时间���序
+      // 按时间序
       return timelineEvents.sort((a, b) => 
         new Date(a.timestamp) - new Date(b.timestamp)
       );
@@ -3451,33 +3449,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
       this.currentTime = this.timeData[0].time;
       this.updateTimeDisplay();
-      this.bindEvents();
-    },
-
-    // 定事件
-    bindEvents() {
-      const slider = document.getElementById('timelineSlider');
-      slider.addEventListener('input', (e) => {
-        this.pause();
-        this.jumpToIndex(parseInt(e.target.value));
-      });
-
-      const speedControl = document.createElement('select');
-      speedControl.innerHTML = `
-        <option value="2000">0.5x</option>
-        <option value="1000" selected>1x</option>
-        <option value="500">2x</option>
-        <option value="250">4x</option>
-      `;
-      speedControl.addEventListener('change', (e) => {
-        this.playbackSpeed = parseInt(e.target.value);
-        if (this.isPlaying) {
-          this.pause();
-          this.play();
-        }
-      });
-
-      document.querySelector('.timeline-controls').appendChild(speedControl);
     },
 
     // 播放/暂停切换
@@ -3532,7 +3503,7 @@ document.addEventListener('DOMContentLoaded', function() {
       this.filterDataByTime(this.currentTime);
     },
 
-    // 更时间显示
+    // 更新时间显示
     updateTimeDisplay() {
       document.getElementById('currentTime').textContent = 
         this.currentTime.toLocaleString();
@@ -5375,7 +5346,7 @@ document.addEventListener('DOMContentLoaded', function() {
       this.initializeCharts();
     },
 
-    // 设置图表容器
+    // 设���图表容器
     setupChartContainers() {
       const container = document.createElement('div');
       container.className = 'charts-container';
