@@ -299,7 +299,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   };
 
-  // 将控制函数���定到 window 对象
+  // 将控制函数定到 window 对象
   Object.assign(window, graphControls);
 
   // 修改数据预处理函数
@@ -549,7 +549,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return betweenness;
     },
 
-    // 查找所有��短路径
+    // 查找所有短路径
     findAllShortestPaths(start, end, edges) {
       const paths = [];
       const queue = [[start]];
@@ -4616,16 +4616,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   };
 
-  // 初始化优化
+  // 简化初始化优化函数
   function initializeOptimizations() {
-    // 启用渲染优化
-    RenderOptimizer.enableViewportOptimization();
-    
     // 注册自定义渲染器
     GraphRenderer.registerCustomRenderers();
-    
-    // 尝试启用WebGL渲染
-    GraphRenderer.enableWebGLRenderer();
     
     // 启动内存管理
     MemoryManager.startMemoryCleanup();
@@ -4637,7 +4631,9 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // 在图实例创建后调用优化初始化
-  initializeOptimizations();
+  document.addEventListener('DOMContentLoaded', function() {
+    initializeOptimizations();
+  });
 
   // 历史记录管理模块
   const HistoryManager = {
@@ -4932,7 +4928,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // 数据验证
       this.validateData(data);
 
-      // 数据转换
+      // 数据���换
       const processedData = this.transformData(data);
 
       // 数据清洗
@@ -5346,7 +5342,7 @@ document.addEventListener('DOMContentLoaded', function() {
       this.initializeCharts();
     },
 
-    // 设���图表容器
+    // 设图表容器
     setupChartContainers() {
       const container = document.createElement('div');
       container.className = 'charts-container';
