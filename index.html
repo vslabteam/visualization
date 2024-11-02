@@ -130,7 +130,14 @@
         <div class="timeline-container">
             <div class="timeline-controls">
                 <button onclick="playTimeline()">播放</button>
-                <input type="range" id="timelineSlider" min="0" max="100" value="0">
+                <label for="timelineSlider">时间轴：</label>
+                <input type="range" 
+                       id="timelineSlider" 
+                       min="0" 
+                       max="100" 
+                       value="0"
+                       title="调整时间轴位置"
+                       aria-label="时间轴滑块">
                 <span id="currentTime">2024-01-01</span>
             </div>
         </div>

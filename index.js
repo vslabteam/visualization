@@ -141,90 +141,90 @@ document.addEventListener('DOMContentLoaded', function() {
     return;
   }
 
-  // 修改 RenderOptimizer 的声明位置和内容
+  // 保留最开始的 RenderOptimizer 声明，删除后面的重复声明
   const RenderOptimizer = {
     // 基础渲染优化
     enableBasicOptimizations() {
-      if (!graph || !graph.getNodes) return;
+        if (!graph || !graph.getNodes) return;
 
-      // 节点数量大时禁用动画
-      if (graph.getNodes().length > 1000) {
-        graph.updateLayout({
-          animate: false
-        });
-      }
+        // 节点数量大时禁用动画
+        if (graph.getNodes().length > 1000) {
+            graph.updateLayout({
+                animate: false
+            });
+        }
 
-      // 使用 GPU 加速
-      const canvas = graph.get('canvas');
-      if (canvas) {
-        canvas.set('enableCSSTransforms', true);
-      }
+        // 使用 GPU 加速
+        const canvas = graph.get('canvas');
+        if (canvas) {
+            canvas.set('enableCSSTransforms', true);
+        }
     },
 
     // 根据缩放级别调整节点细节
     adjustNodeDetail(node, zoom) {
-      if (!node || !node.getModel) return;
-      
-      const model = node.getModel();
-      if (zoom < 0.5) {
-        graph.updateItem(node, {
-          labelCfg: { style: { opacity: 0 } },
-          style: { lineWidth: 1 }
-        });
-      } else if (zoom < 1) {
-        graph.updateItem(node, {
-          labelCfg: { style: { opacity: 0.5 } },
-          style: { lineWidth: 2 }
-        });
-      } else {
-        graph.updateItem(node, {
-          labelCfg: { style: { opacity: 1 } },
-          style: { lineWidth: 3 }
-        });
-      }
+        if (!node || !node.getModel) return;
+        
+        const model = node.getModel();
+        if (zoom < 0.5) {
+            graph.updateItem(node, {
+                labelCfg: { style: { opacity: 0 } },
+                style: { lineWidth: 1 }
+            });
+        } else if (zoom < 1) {
+            graph.updateItem(node, {
+                labelCfg: { style: { opacity: 0.5 } },
+                style: { lineWidth: 2 }
+            });
+        } else {
+            graph.updateItem(node, {
+                labelCfg: { style: { opacity: 1 } },
+                style: { lineWidth: 3 }
+            });
+        }
     },
 
     // 优化渲染性能
     optimizeRendering() {
-      // 使用 GPU 加速
-      graph.get('canvas').set('enableCSSTransforms', true);
-      
-      // 节点数量大时禁用动画
-      if (graph.getNodes().length > 1000) {
-        graph.updateLayout({
-          animate: false
-        });
-      }
+        // 使用 GPU 加速
+        graph.get('canvas').set('enableCSSTransforms', true);
+        
+        // 节点数量大时禁用动画
+        if (graph.getNodes().length > 1000) {
+            graph.updateLayout({
+                animate: false
+            });
+        }
     },
 
     // 清理未使用的资源
     cleanupUnusedResources() {
-      const nodes = graph.getNodes();
-      nodes.forEach(node => {
-        if (!node.isVisible()) {
-          node.get('group').get('children').forEach(child => {
-            if (child.get('type') === 'image') {
-              child.get('image').src = '';
+        const nodes = graph.getNodes();
+        nodes.forEach(node => {
+            if (!node.isVisible()) {
+                node.get('group').get('children').forEach(child => {
+                    if (child.get('type') === 'image') {
+                        child.get('image').src = '';
+                    }
+                });
             }
-          });
-        }
-      });
+        });
     },
 
     // 监控性能
     startPerformanceMonitoring() {
-      if (window.performance && window.performance.memory) {
-        setInterval(() => {
-          const memory = window.performance.memory;
-          console.log('Memory Usage:', {
-            total: memory.totalJSHeapSize / 1048576 + 'MB',
-            used: memory.usedJSHeapSize / 1048576 + 'MB',
-            limit: memory.jsHeapSizeLimit / 1048576 + 'MB'
-          });
-        }, 10000);
-      }
+        if (window.performance && window.performance.memory) {
+            setInterval(() => {
+                const memory = window.performance.memory;
+                console.log('Memory Usage:', {
+                    total: memory.totalJSHeapSize / 1048576 + 'MB',
+                    used: memory.usedJSHeapSize / 1048576 + 'MB',
+                    limit: memory.jsHeapSizeLimit / 1048576 + 'MB'
+                });
+            }, 10000);
+        }
     }
-  };
+};
 
   // 然后初始化图实例
   const graph = new G6.Graph({
