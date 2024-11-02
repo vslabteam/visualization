@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function() {
     return;
   }
 
-  // 首先定义 RenderOptimizer
+  // 修改 RenderOptimizer 的声明位置和内容
   const RenderOptimizer = {
     // 基础渲染优化
     enableBasicOptimizations() {
@@ -165,6 +165,7 @@ document.addEventListener('DOMContentLoaded', function() {
     adjustNodeDetail(node, zoom) {
       if (!node || !node.getModel) return;
       
+      const model = node.getModel();
       if (zoom < 0.5) {
         graph.updateItem(node, {
           labelCfg: { style: { opacity: 0 } },
@@ -180,6 +181,47 @@ document.addEventListener('DOMContentLoaded', function() {
           labelCfg: { style: { opacity: 1 } },
           style: { lineWidth: 3 }
         });
+      }
+    },
+
+    // 优化渲染性能
+    optimizeRendering() {
+      // 使用 GPU 加速
+      graph.get('canvas').set('enableCSSTransforms', true);
+      
+      // 节点数量大时禁用动画
+      if (graph.getNodes().length > 1000) {
+        graph.updateLayout({
+          animate: false
+        });
+      }
+    },
+
+    // 清理未使用的资源
+    cleanupUnusedResources() {
+      const nodes = graph.getNodes();
+      nodes.forEach(node => {
+        if (!node.isVisible()) {
+          node.get('group').get('children').forEach(child => {
+            if (child.get('type') === 'image') {
+              child.get('image').src = '';
+            }
+          });
+        }
+      });
+    },
+
+    // 监控性能
+    startPerformanceMonitoring() {
+      if (window.performance && window.performance.memory) {
+        setInterval(() => {
+          const memory = window.performance.memory;
+          console.log('Memory Usage:', {
+            total: memory.totalJSHeapSize / 1048576 + 'MB',
+            used: memory.usedJSHeapSize / 1048576 + 'MB',
+            limit: memory.jsHeapSizeLimit / 1048576 + 'MB'
+          });
+        }, 10000);
       }
     }
   };
@@ -1273,31 +1315,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // 隐藏加载提示
     const hideLoading = () => {
       loadingTip.style.display = 'none';
-    };
-
-    // 优渲染性能
-    const optimizeRendering = () => {
-      // 使用 GPU 加速
-      graph.get('canvas').set('enableCSSTransforms', true);
-      
-      // 节点数量大时禁用画
-      if (graph.getNodes().length > 1000) {
-        graph.updateLayout({
-          animate: false
-        });
-      }
-      
-      // 添加节点可见性判断
-      graph.on('beforerender', () => {
-        const nodes = graph.getNodes();
-        const viewport = graph.getViewport();
-        
-        nodes.forEach(node => {
-          const bbox = node.getBBox();
-          const visible = viewport.intersects(bbox);
-          node.set('visible', visible);
-        });
-      });
     };
 
     return {
