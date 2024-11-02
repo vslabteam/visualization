@@ -1614,7 +1614,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
       });
 
-      // 按时间排序
+      // 按时间���序
       return timelineEvents.sort((a, b) => 
         new Date(a.timestamp) - new Date(b.timestamp)
       );
@@ -2589,7 +2589,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // 绑定到全局
   window.applyFilters = () => MultiDimensionalFilter.applyFilters();
 
-  // 关系分析工具
+  // 关系分工具
   const RelationshipAnalysis = {
     // 团伙发现
     async findGroups() {
@@ -2709,7 +2709,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return edges.length / (timeSpan / (24 * 60 * 60 * 1000)); // 每天的交易频率
     },
 
-    // 计算��点风险分数
+    // 计算点风险分数
     calculateNodeRiskScore(node, edges) {
       let score = 0;
 
@@ -3454,7 +3454,7 @@ document.addEventListener('DOMContentLoaded', function() {
       this.bindEvents();
     },
 
-    // 绑定事件
+    // 定事件
     bindEvents() {
       const slider = document.getElementById('timelineSlider');
       slider.addEventListener('input', (e) => {
