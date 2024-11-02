@@ -150,11 +150,11 @@ document.addEventListener('DOMContentLoaded', function() {
       default: ['drag-canvas', 'zoom-canvas', 'drag-node']
     },
     defaultNode: {
-        size: 20,
+      size: 20,
       style: {
         fill: '#91d5ff',
         stroke: '#40a9ff',
-            lineWidth: 1
+        lineWidth: 1
       }
     },
     defaultEdge: {
@@ -163,9 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
         lineWidth: 1,
         endArrow: true
       }
-    },
-    // 移除 WebGL 相关配置
-    // renderer: 'webgl'  // 删除这行
+    }
   });
 
   // 定义控制函数
@@ -1128,7 +1126,7 @@ document.addEventListener('DOMContentLoaded', function() {
   addMinimap();
   enableDragUpload();
 
-  // 在图实例创建后添���以下代码
+  // 在图实例创建后添以下代码
 
   // 创建加载提示
   const createLoadingTip = () => {
@@ -2056,7 +2054,7 @@ document.addEventListener('DOMContentLoaded', function() {
       };
     },
 
-    // 计算图的密度
+    // 计算��的密度
     calculateGraphDensity() {
       const data = graph.save();
       const nodeCount = data.nodes.length;
@@ -2432,7 +2430,7 @@ document.addEventListener('DOMContentLoaded', function() {
       };
     },
 
-    // 检查节点是否匹配过滤条件
+    // 检节点是否匹配过滤条件
     nodeMatchesFilters(node, filters) {
       // 节点类型过滤
       if (filters.nodeType !== 'all' && node.type !== filters.nodeType) {
@@ -4129,7 +4127,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 在现有代码中添加以下函数
 
-  // 标���节点
+  // 标节点
   function markNode(nodeId) {
     const node = graph.findById(nodeId);
     if (!node) return;
@@ -4236,35 +4234,31 @@ document.addEventListener('DOMContentLoaded', function() {
         const canvas = graph.get('canvas');
         if (!canvas) return;
 
-        // 使用画布和缩放信息计算可视区域
-        const point = graph.getCanvasPoint ? graph.getCanvasPoint() : {x: 0, y: 0};
         const zoom = graph.getZoom ? graph.getZoom() : 1;
-        const width = canvas.get('width');
-        const height = canvas.get('height');
-        
-        const viewportBBox = {
-          x: -point.x / zoom,
-          y: -point.y / zoom,
-          width: width / zoom,
-          height: height / zoom
-        };
+        const point = graph.getCanvasPoint ? graph.getCanvasPoint() : {x: 0, y: 0};
         
         nodes.forEach(node => {
           const bbox = node.getBBox();
-          const visible = this.isInViewport(bbox, viewportBBox);
+          if (bbox) {
+            const visible = this.isInViewport(bbox, {
+          x: -point.x / zoom,
+          y: -point.y / zoom,
+              width: canvas.get('width') / zoom,
+              height: canvas.get('height') / zoom
+            });
           
           if (visible) {
             node.show();
-            this.adjustNodeDetail(node, zoom);
           } else {
             node.hide();
+            }
           }
         });
       };
 
+      // 添加事件监听
       graph.on('afterrender', viewportCheck);
       graph.on('viewportchange', viewportCheck);
-      graph.on('afterzoom', viewportCheck);
     },
 
     // 检查是否在视口内
@@ -4793,7 +4787,7 @@ document.addEventListener('DOMContentLoaded', function() {
       };
     },
 
-    // 数��分块加载
+    // 数分块加载
     createDataChunks(data, chunkSize = 1000) {
       const chunks = [];
       for (let i = 0; i < data.nodes.length; i += chunkSize) {
@@ -5278,59 +5272,15 @@ document.addEventListener('DOMContentLoaded', function() {
   const WebGLRenderer = {
     // 初始化WebGL渲染器
     initialize() {
-      if (!G6.Util.isWebGLSupported()) {
-        console.warn('当前环境不支持WebGL，将使用Canvas渲染');
+      // 简单检查是否支持 WebGL
+      try {
+        const canvas = document.createElement('canvas');
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        return !!gl;
+      } catch (error) {
+        console.warn('WebGL 不受支持:', error);
         return false;
       }
-
-      const renderer = new G6.Renderer.WebGL({
-        container: 'container',
-        width: document.querySelector('.center-panel').offsetWidth,
-        height: document.querySelector('.center-panel').offsetHeight,
-        // WebGL特定配置
-        settings: {
-          antialias: true, // 抗锯齿
-          preserveDrawingBuffer: true, // 保留缓冲区，用于截图
-          premultipliedAlpha: true, // 预乘Alpha通道
-          depth: true // 启用深度测试
-        }
-      });
-
-      // 配置WebGL渲染参数
-      renderer.configure({
-        // 基础渲染配置
-        defaultShader: {
-          vertexShader: this.getVertexShader(),
-          fragmentShader: this.getFragmentShader()
-        },
-        // 高级特效配置
-        effects: {
-          bloom: {
-            enabled: true,
-            threshold: 0.5,
-            intensity: 1.5
-          },
-          ssao: {
-            enabled: true,
-            radius: 12,
-            intensity: 1.2
-          },
-          outline: {
-            enabled: true,
-            width: 2,
-            color: [0, 0, 0, 0.3]
-          }
-        },
-        // 性能优化配置
-        performance: {
-          enableInstancing: true, // 启用实例化渲染
-          batchSize: 5000, // 批处理大小
-          cullFace: true, // 启用面剔除
-          depthTest: true // 启用深度测试
-        }
-      });
-
-      return renderer;
     },
 
     // 顶点着色器
@@ -5930,7 +5880,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <!DOCTYPE html>
         <html>
           <head>
-            <title>欺诈分析调查报���</title>
+            <title>欺诈分析调查报</title>
             <style>
               ${this.getReportStyles()}
             </style>

@@ -52,7 +52,8 @@
                 <input type="text" 
                        id="nodeSearch" 
                        title="输入节点ID或属性搜索"
-                       placeholder="输入节点ID或属性搜索...">
+                       placeholder="输入节点ID或属性搜索..."
+                       aria-label="节点搜索输入框">
                 <button class="search-button" onclick="searchNodes()">搜索</button>
             </div>
             <div class="search-results" id="searchResults"></div>
@@ -182,6 +183,7 @@
                         <label for="layoutSelect">选择布局：</label>
                         <select id="layoutSelect" 
                                 title="选择图布局方式"
+                                aria-label="布局选择"
                                 onchange="changeLayout()">
                             <option value="force">力导向布局</option>
                             <option value="circular">环形布局</option>
@@ -204,7 +206,9 @@
                     <div class="control-item">
                         <label for="algorithmSelect">选择算法：</label>
                         <select id="algorithmSelect" 
-                                title="选择分析算法">
+                                title="选择分析算法"
+                                aria-label="算法选择"
+                                onchange="runAlgorithm()">
                             <option value="centrality">中心度分析</option>
                             <option value="community">社区检测</option>
                             <option value="shortestPath">最短路径</option>
