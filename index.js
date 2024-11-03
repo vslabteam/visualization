@@ -233,22 +233,22 @@ document.addEventListener('DOMContentLoaded', function() {
   const graph = new G6.Graph({
     container: 'container',
     width: container.scrollWidth,
-    height: container.scrollHeight,
+    height: container.scrollHeight || 500,  // 确保有默认高度
     modes: {
       default: ['drag-canvas', 'zoom-canvas', 'drag-node', 'click-select']
     },
     defaultNode: {
-      size: 20,
+      size: 30,  // 增大默认节点大小
       style: {
         fill: '#91d5ff',
         stroke: '#40a9ff',
-        lineWidth: 1
+        lineWidth: 2
       }
     },
     defaultEdge: {
       style: {
         stroke: '#91d5ff',
-        lineWidth: 1,
+        lineWidth: 2,
         endArrow: true
       }
     },
@@ -259,8 +259,11 @@ document.addEventListener('DOMContentLoaded', function() {
       type: 'force',
       preventOverlap: true,
       nodeStrength: -50,
-      edgeStrength: 0.1
-    }
+      edgeStrength: 0.1,
+      linkDistance: 100
+    },
+    fitView: true,  // 自动适应画布
+    animate: true   // 启用动画
   });
 
   // 初始化时调用基础优化
@@ -349,19 +352,18 @@ document.addEventListener('DOMContentLoaded', function() {
       const processedData = preprocessData(data);
       console.log('处理后的数据:', processedData);
       
-      if (!processedData.nodes || !processedData.edges) {
-        throw new Error('数据格式不正确');
+      // 隐藏加载提示
+      const loadingContainer = document.querySelector('.loading-container');
+      if (loadingContainer) {
+        loadingContainer.style.display = 'none';
       }
       
-      // 直接渲染数据，不使用分块加载
+      // 渲染图
       graph.data(processedData);
       graph.render();
       
       // 更新统计信息
       updateStats(processedData);
-      
-      // 初始化时间轴
-      TimelineController.initialize(processedData);
       
       // 适应画布
       graph.fitView();
@@ -374,23 +376,15 @@ document.addEventListener('DOMContentLoaded', function() {
       console.error('加载数据失败，详细错误:', error);
       console.error('错误堆栈:', error.stack);
       
-      // 使用示例数据作为后备
-      const sampleData = {
-        nodes: [
-          { id: '1', label: '账户1', type: 'account' },
-          { id: '2', label: '账户2', type: 'account' },
-          { id: '3', label: '交易1', type: 'transaction' },
-          { id: '4', label: '商户1', type: 'merchant' }
-        ],
-        edges: [
-          { source: '1', target: '3' },
-          { source: '3', target: '2' },
-          { source: '2', target: '4' }
-        ]
-      };
-      graph.data(sampleData);
-      graph.render();
-      updateStats(sampleData);
+      // 隐藏加载提示并显示错误信息
+      const loadingContainer = document.querySelector('.loading-container');
+      if (loadingContainer) {
+        loadingContainer.innerHTML = `
+          <div class="error-message">
+            数据加载失败，请刷新页面重试
+          </div>
+        `;
+      }
     });
 
   // 添加窗口大小改变的监听器
@@ -2724,7 +2718,7 @@ document.addEventListener('DOMContentLoaded', function() {
     calculateNodeRiskScore(node, edges) {
       let score = 0;
 
-      // 交易金额异常
+      // 易金额异常
       const amounts = edges.map(e => e.amount || 0);
       const avgAmount = amounts.reduce((a, b) => a + b, 0) / amounts.length;
       const maxAmount = Math.max(...amounts);
@@ -3274,7 +3268,7 @@ document.addEventListener('DOMContentLoaded', function() {
       nodes: []
     },
 
-    // 高亮显示带有注释的元素
+    // 亮显示带有注释的元素
     highlightCommentedElements(commentId) {
       const comment = this.evidence.comments.find(c => c.id === commentId);
       if (!comment) return;
@@ -3380,7 +3374,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const marker = this.evidence.markers.find(m => m.id === markerId);
       if (!marker) return;
 
-      // 清除现有高亮
+      // 清除现高亮
       graph.getNodes().forEach(node => graph.clearItemStates(node));
 
       // 高亮标记的节点
@@ -4117,7 +4111,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   };
 
-  // 绑定全局
+  // 绑定全
   window.exportImage = (type) => ExportManager.exportImage(type);
   window.exportHighQuality = () => ExportManager.exportHighQuality();
   window.exportToExcel = () => ExportManager.exportToExcel();
@@ -4406,7 +4400,7 @@ document.addEventListener('DOMContentLoaded', function() {
     startMemoryCleanup() {
       setInterval(() => {
         this.cleanupUnusedResources();
-      }, 60000); // 每���执行一次
+      }, 60000); // 每执行一次
     },
 
     // 清理未使用的资源
@@ -5232,7 +5226,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     },
 
-    // 格式化工具方��
+    // 格式化工具方
     formatAmount(amount) {
       return new Intl.NumberFormat('zh-CN', {
         style: 'currency',
@@ -5655,6 +5649,8 @@ document.addEventListener('DOMContentLoaded', function() {
     addLanguageSelector() {
       const selector = document.createElement('select');
       selector.className = 'language-selector';
+      selector.title = '选择语言';  // 添加 title
+      selector.setAttribute('aria-label', '选择语言');  // 添加 aria-label
       selector.innerHTML = `
         <option value="zh-CN">中文</option>
         <option value="en-US">English</option>
@@ -5666,7 +5662,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
       // 添加到控制面板
       const controlPanel = document.querySelector('.right-panel');
+      if (controlPanel) {
       controlPanel.insertBefore(selector, controlPanel.firstChild);
+      }
     }
   };
 
@@ -5824,7 +5822,7 @@ document.addEventListener('DOMContentLoaded', function() {
       };
     },
 
-    // 捕获可视化内容
+    // 捕获可化内容
     captureVisualizations() {
       return {
         graphSnapshot: this.captureGraphImage(),
@@ -6057,4 +6055,14 @@ document.addEventListener('DOMContentLoaded', function() {
       RenderOptimizer.adjustNodeDetail(node, zoom);
     });
   });
+
+  // 在图实例创建时添加样式
+  const container = document.getElementById('container');
+  if (container) {
+    container.style.width = '100%';
+    container.style.height = '100%';
+    container.style.minHeight = '500px';
+    container.style.background = '#fff';
+    container.style.position = 'relative';
+  }
 }); 
