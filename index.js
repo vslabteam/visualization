@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   console.log('G6 version:', G6.version);
 
-  // ���始化图实例
+  // 始化图实例
   const graph = new G6.Graph({
     container: 'container',
     width: container.scrollWidth,
@@ -221,16 +221,16 @@ document.addEventListener('DOMContentLoaded', function() {
   // 修改统计信息的函数
   const updateStats = (data) => {
     // 更新节点统计
-    document.getElementById('nodeCount').textContent = data.nodes.length;
-    document.getElementById('edgeCount').textContent = data.edges.length;
+    document.getElementById('nodeCount').textContent = data.nodes.length || 0;
+    document.getElementById('edgeCount').textContent = data.edges.length || 0;
     
     // 更新不同类型节点的统计
     document.getElementById('accountCount').textContent = 
-      data.nodes.filter(node => node.type === 'account').length;
+      data.nodes.filter(node => node.type === 'account').length || 0;
     document.getElementById('transactionCount').textContent = 
-      data.nodes.filter(node => node.type === 'payment').length;
+      data.nodes.filter(node => node.type === 'payment').length || 0;
     document.getElementById('merchantCount').textContent = 
-      data.nodes.filter(node => node.type === 'merchant').length;
+      data.nodes.filter(node => node.type === 'merchant').length || 0;
   };
 
   // 修改数据加载部分
@@ -271,7 +271,7 @@ document.addEventListener('DOMContentLoaded', function() {
       console.error('加载数据失败，详细错误:', error);
       console.error('错误堆栈:', error.stack);
       
-      // 隐藏加载提示并显示错误信息
+      // 显示错误信息
       const loadingContainer = document.querySelector('.loading-container');
       if (loadingContainer) {
         loadingContainer.innerHTML = `
@@ -280,6 +280,9 @@ document.addEventListener('DOMContentLoaded', function() {
           </div>
         `;
       }
+
+      // 更新统计信息为 0
+      updateStats({ nodes: [], edges: [] });
     });
 
   // 添加窗口大小改变的监听器
@@ -802,7 +805,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       const avgInterval = totalInterval / (transactions.length - 1);
 
-      // ���间间隔越短，风险越高
+      // 间间隔越短，风险越高
       return Math.min(30, Math.round(30 * (1 - avgInterval / (24 * 60 * 60 * 1000))));
     },
 
@@ -2729,7 +2732,6 @@ function runAlgorithm() {
       graphData.edges
         .filter(edge => 
           group.includes(edge.source) && group.includes(edge.target)
-        )
         .forEach(edge => {
           events.push({
             time: new Date(edge.timestamp),
@@ -4493,7 +4495,7 @@ function runAlgorithm() {
       this.showInfoPanel(infoPanel);
     },
 
-    // 渲染属性信息
+    // 渲染属��信息
     renderProperties(properties) {
       if (!properties) return '';
       
