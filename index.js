@@ -280,7 +280,7 @@ document.addEventListener('DOMContentLoaded', function() {
       data.nodes.filter(node => node.type === 'merchant').length || 0;
   };
 
-  // 修改数据加载部分，添加更多诊断日志
+  // 修改数据加载部分
   fetch('./dataset/bankFraud.json')
     .then(response => response.json())
     .then(data => {
@@ -293,47 +293,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // 先移除加载提示
         const loadingContainer = document.querySelector('.loading-container');
         if (loadingContainer) {
-          loadingContainer.remove();
+          loadingContainer.parentNode.removeChild(loadingContainer); // 使用 removeChild 确保完全移除
         }
 
         // 确保容器是空的
         container.innerHTML = '';
         
-        // 重新初始化图实例
-        const graph = new G6.Graph({
-          container: container, // 直接传入 DOM 元素
-          width: container.offsetWidth,
-          height: container.offsetHeight,
-          modes: {
-            default: ['drag-canvas', 'zoom-canvas', 'drag-node', 'click-select']
-          },
-          defaultNode: {
-            size: 30,
-            style: {
-              fill: '#91d5ff',
-              stroke: '#40a9ff',
-              lineWidth: 2
-            }
-          },
-          defaultEdge: {
-            style: {
-              stroke: '#91d5ff',
-              lineWidth: 2,
-              endArrow: true
-            }
-          },
-          renderer: 'canvas',
-          layout: {
-            type: 'force',
-            preventOverlap: true,
-            nodeStrength: -50,
-            edgeStrength: 0.1,
-            linkDistance: 100
-          },
-          fitView: true,
-          animate: true
-        });
-
         // 渲染数据
         graph.data(processedData);
         graph.render();
@@ -348,26 +313,6 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('节点数量:', graph.getNodes().length);
         console.log('边数量:', graph.getEdges().length);
 
-        // 检查 Canvas 是否创建成功
-        setTimeout(() => {
-          const canvas = container.querySelector('canvas');
-          if (canvas) {
-            console.log('Canvas 创建成功:', {
-              width: canvas.width,
-              height: canvas.height,
-              style: canvas.style.cssText
-            });
-          } else {
-            console.error('Canvas 未能创建');
-            console.log('容器状态:', {
-              width: container.offsetWidth,
-              height: container.offsetHeight,
-              innerHTML: container.innerHTML,
-              style: container.style.cssText
-            });
-          }
-        }, 100);
-
       } catch (error) {
         console.error('渲染过程中出错:', error);
         container.innerHTML = `
@@ -380,6 +325,11 @@ document.addEventListener('DOMContentLoaded', function() {
     })
     .catch(error => {
       console.error('数据加载失败:', error);
+      // 显示错误信息并移除加载提示
+      const loadingContainer = document.querySelector('.loading-container');
+      if (loadingContainer) {
+        loadingContainer.parentNode.removeChild(loadingContainer);
+      }
       container.innerHTML = `
         <div class="error-message">
           数据加载失败，请刷新页面重试<br>
@@ -2725,7 +2675,7 @@ function runAlgorithm() {
     calculateNodeRiskScore(node, edges) {
       let score = 0;
 
-      // ��金额异常
+      // 金额异常
       const amounts = edges.map(e => e.amount || 0);
       const avgAmount = amounts.reduce((a, b) => a + b, 0) / amounts.length;
       const maxAmount = Math.max(...amounts);
@@ -5525,9 +5475,9 @@ function runAlgorithm() {
         // 节点类型
         'node.account': '账户',
         'node.merchant': '商户',
-        'node.transaction': '交��',
+        'node.transaction': '交',
 
-        // 算法��
+        // 算法
         'algorithm.centrality': '中心度分析',
         'algorithm.community': '社区检测',
         'algorithm.path': '路径分析',
