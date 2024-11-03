@@ -87,38 +87,98 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 修改图实例初始化代码
   const graph = new G6.Graph({
-    container: container, // 直接传入 DOM 元素而不是 ID 字符串
+    container: document.getElementById('container'), // 直接传入 DOM 元素
     width: container.offsetWidth || 800,
     height: container.offsetHeight || 600,
-    modes: {
-      default: ['drag-canvas', 'zoom-canvas', 'drag-node', 'click-select']
+    // 添加自动适应容器大小
+    autofit: true,
+    fitView: true,
+    fitViewPadding: [20, 40, 20, 40],
+    // 修改渲染器设置
+    renderer: 'canvas',
+    // 修改布局配置
+    layout: {
+      type: 'force',
+      preventOverlap: true,
+      nodeStrength: -50,
+      edgeStrength: 0.1,
+      linkDistance: 100,
+      // 添加布局收敛条件
+      alphaDecay: 0.01,
+      alphaMin: 0.001,
+      onTick: () => {
+        // 布局迭代时的回调
+        console.log('布局迭代中...');
+      },
+      onLayoutEnd: () => {
+        // 布局完成时的回调
+        console.log('布局计算完成');
+        graph.fitView();
+      }
     },
+    // 修改默认节点配置
     defaultNode: {
       size: 30,
       style: {
         fill: '#91d5ff',
         stroke: '#40a9ff',
         lineWidth: 2
+      },
+      labelCfg: {
+        style: {
+          fill: '#333',
+          fontSize: 12
+        }
       }
     },
+    // 修改默认边配置
     defaultEdge: {
       style: {
         stroke: '#91d5ff',
         lineWidth: 2,
         endArrow: true
+      },
+      labelCfg: {
+        style: {
+          fill: '#666',
+          fontSize: 10
+        }
       }
     },
-    // 使用 canvas 渲染器
-    renderer: 'canvas',
-    layout: {
-      type: 'force',
-      preventOverlap: true,
-      nodeStrength: -50,
-      edgeStrength: 0.1,
-      linkDistance: 100
-    },
-    fitView: true,
-    animate: true
+    // 添加动画配置
+    animate: true,
+    animateCfg: {
+      duration: 500,
+      easing: 'easeCubic'
+    }
+  });
+
+  // 添加容器大小变化监听
+  window.addEventListener('resize', () => {
+    if (!graph || graph.get('destroyed')) return;
+    const container = document.getElementById('container');
+    if (!container) return;
+    
+    graph.changeSize(container.offsetWidth, container.offsetHeight);
+    graph.fitView();
+  });
+
+  // 添加图实例就绪检查
+  graph.on('afterrender', () => {
+    const canvas = document.querySelector('#container canvas');
+    if (canvas) {
+      console.log('Canvas 创建成功:', {
+        width: canvas.width,
+        height: canvas.height,
+        style: canvas.style.cssText
+      });
+    } else {
+      console.error('Canvas 未能创建');
+      // 尝试重新初始化
+      setTimeout(() => {
+        graph.render();
+      }, 100);
+    }
   });
 
   // 创建并初始化 ResizeObserver
@@ -1286,7 +1346,7 @@ function runAlgorithm() {
 
   // 在现有码后添加新的功能模块
 
-  // 异��检测模块
+  // 异检测模块
   const AnomalyDetection = {
     // 检测常交易模式
     detectAnomalies() {
@@ -1330,7 +1390,7 @@ function runAlgorithm() {
       `).join('');
     },
 
-    // 检测循环交���
+    // 检测循环交
     detectCycles(data) {
       const cycles = [];
       const visited = new Set();
@@ -1756,7 +1816,7 @@ function runAlgorithm() {
       `;
     },
 
-    // 渲染中心���分析结果
+    // 渲染中心分析结果
     renderCentralityResults(centrality) {
       const sortedNodes = Object.entries(centrality)
         .sort(([, a], [, b]) => b - a)
@@ -3459,7 +3519,7 @@ function runAlgorithm() {
 
   // 添搜索功能
   const SearchModule = {
-    // 执行搜索
+    // 执���搜索
     searchNodes() {
       const searchTerm = document.getElementById('nodeSearch').value.toLowerCase();
       const searchResults = [];
@@ -4654,7 +4714,7 @@ function runAlgorithm() {
   window.undo = () => HistoryManager.undo();
   window.redo = () => HistoryManager.redo();
 
-  // 数据优��管理器
+  // 数据优管理器
   const DataOptimizer = {
     // 压缩图数据
     compressGraphData(data) {
@@ -5383,7 +5443,7 @@ function runAlgorithm() {
       // 实现时间数据处理逻辑
     },
 
-    // 处理��额数据
+    // 处理金额数据
     processAmountData(data) {
       // 实现金额数据处理逻辑
     },
