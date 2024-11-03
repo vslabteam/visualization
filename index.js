@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   console.log('G6 version:', G6.version);
 
-  // 初始化图实例
+  // ���始化图实例
   const graph = new G6.Graph({
     container: 'container',
     width: container.scrollWidth,
@@ -215,6 +215,22 @@ document.addEventListener('DOMContentLoaded', function() {
         target: String(edge.target)
       }))
     };
+  };
+
+  // 在 DOMContentLoaded 事件处理函数内，图实例初始化之后添加
+  // 修改统计信息的函数
+  const updateStats = (data) => {
+    // 更新节点统计
+    document.getElementById('nodeCount').textContent = data.nodes.length;
+    document.getElementById('edgeCount').textContent = data.edges.length;
+    
+    // 更新不同类型节点的统计
+    document.getElementById('accountCount').textContent = 
+      data.nodes.filter(node => node.type === 'account').length;
+    document.getElementById('transactionCount').textContent = 
+      data.nodes.filter(node => node.type === 'payment').length;
+    document.getElementById('merchantCount').textContent = 
+      data.nodes.filter(node => node.type === 'merchant').length;
   };
 
   // 修改数据加载部分
@@ -786,7 +802,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       const avgInterval = totalInterval / (transactions.length - 1);
 
-      // 时间间隔越短，风险越高
+      // ���间间隔越短，风险越高
       return Math.min(30, Math.round(30 * (1 - avgInterval / (24 * 60 * 60 * 1000))));
     },
 
@@ -917,7 +933,7 @@ function runAlgorithm() {
   button.textContent = '计算中...';
 
   try {
-    // 清除��前的高亮
+    // 清除前的高亮
     graph.getNodes().forEach(node => {
       graph.clearItemStates(node);
       graph.updateItem(node, {
@@ -5056,7 +5072,7 @@ function runAlgorithm() {
       return `
         <div class="cycle-details">
           <div>循环长度: ${anomaly.path.length}</div>
-          <div>���与账户: ${anomaly.path.length}</div>
+          <div>与账户: ${anomaly.path.length}</div>
           <div>总交易金额: ${this.formatAmount(anomaly.totalAmount)}</div>
           <div class="cycle-path">
             ${anomaly.path.map(nodeId => this.getNodeLabel(nodeId)).join(' → ')}
