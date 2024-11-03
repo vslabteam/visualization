@@ -249,67 +249,82 @@ document.addEventListener('DOMContentLoaded', function() {
       const processedData = preprocessData(data);
       console.log('处理后的数据:', processedData);
       
-      // 获取并检查加载提示元素
-      const loadingContainer = document.querySelector('.loading-container');
-      console.log('加载提示元素:', loadingContainer);
+      // 检查 loading-container 元素
+      const loadingContainers = document.querySelectorAll('.loading-container');
+      console.log('找到的 loading-container 元素数量:', loadingContainers.length);
+      loadingContainers.forEach((container, index) => {
+        console.log(`loading-container ${index} 的样式:`, window.getComputedStyle(container));
+      });
       
+      // 检查 container 元素
+      const container = document.getElementById('container');
+      console.log('container 元素:', container);
+      if (container) {
+        console.log('container 尺寸:', {
+          offsetWidth: container.offsetWidth,
+          offsetHeight: container.offsetHeight,
+          clientWidth: container.clientWidth,
+          clientHeight: container.clientHeight,
+          scrollWidth: container.scrollWidth,
+          scrollHeight: container.scrollHeight,
+          style: container.style
+        });
+      }
+      
+      // 检查 Canvas 元素
+      const canvas = document.querySelector('#container canvas');
+      console.log('Canvas 元素:', canvas);
+      if (canvas) {
+        console.log('Canvas 尺寸:', {
+          width: canvas.width,
+          height: canvas.height,
+          offsetWidth: canvas.offsetWidth,
+          offsetHeight: canvas.offsetHeight,
+          style: canvas.style
+        });
+      }
+
       try {
-        console.log('开始渲染图...');
-        // 清空容器内容
-        container.innerHTML = '';
+        // 清除加载提示并渲染图
+        if (container) {
+          container.innerHTML = '';
+        }
         
         // 渲染图
         graph.data(processedData);
-        console.log('数据已设置到图实例');
-        
         graph.render();
-        console.log('图已渲染');
         
         // 更新统计信息
         updateStats(processedData);
-        console.log('统计信息已更新');
         
         // 适应画布
         graph.fitView();
-        console.log('视图已适配');
         
         console.log('图渲染完成');
         console.log('节点数量:', graph.getNodes().length);
         console.log('边数量:', graph.getEdges().length);
 
-        // 检查图是否正确渲染
-        const canvas = document.querySelector('#container canvas');
-        console.log('Canvas元素:', canvas);
-        if (canvas) {
-          console.log('Canvas尺寸:', {
-            width: canvas.width,
-            height: canvas.height,
-            style: canvas.style.cssText
+        // 再次检查 Canvas 元素
+        const canvasAfterRender = document.querySelector('#container canvas');
+        console.log('渲染后的 Canvas 元素:', canvasAfterRender);
+        if (canvasAfterRender) {
+          console.log('渲染后的 Canvas 尺寸:', {
+            width: canvasAfterRender.width,
+            height: canvasAfterRender.height,
+            offsetWidth: canvasAfterRender.offsetWidth,
+            offsetHeight: canvasAfterRender.offsetHeight,
+            style: canvasAfterRender.style
           });
         }
 
       } catch (renderError) {
         console.error('渲染过程中出错:', renderError);
+        throw renderError;
       }
     })
     .catch(error => {
       console.error('加载数据失败，详细错误:', error);
       console.error('错误堆栈:', error.stack);
-      
-      // 显示错误信息
-      const loadingContainer = document.querySelector('.loading-container');
-      if (loadingContainer) {
-        loadingContainer.innerHTML = `
-          <div class="error-message">
-            数据加载失败，请刷新页面重试
-            <br>
-            错误信息: ${error.message}
-          </div>
-        `;
-      }
-
-      // 更新统计信息为 0
-      updateStats({ nodes: [], edges: [] });
     });
 
   // 添加窗口大小改变的监听器
@@ -565,7 +580,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return clusters;
     },
 
-    // 计算距离矩阵
+    // 计算距离阵
     calculateDistanceMatrix(nodes, edges) {
       const distances = {};
       nodes.forEach(source => {
@@ -621,7 +636,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const subgraphs = [];
       const visited = new Set();
 
-      // 从未访问的节点开始扩展子图
+      // 从未访问的节点开始��展子图
       data.nodes.forEach(startNode => {
         if (visited.has(startNode.id)) return;
 
@@ -698,7 +713,7 @@ document.addEventListener('DOMContentLoaded', function() {
       );
     },
 
-    // 环路检测算���
+    // 环路检测算
     detectCycles(graph) {
       const data = graph.save();
       const cycles = [];
@@ -1519,7 +1534,7 @@ function runAlgorithm() {
       const timelineEvents = [];
       const data = graph.save();
 
-      // 收集所有时相关的事件
+      // 收集所有时��关的事件
       data.edges.forEach(edge => {
         const sourceNode = data.nodes.find(n => n.id === edge.source);
         const targetNode = data.nodes.find(n => n.id === edge.target);
@@ -2146,7 +2161,7 @@ function runAlgorithm() {
       };
     },
 
-    // 计算边类型数量
+    // 计��边类型数量
     countEdgeTypes() {
       const data = graph.save();
       const typeCounts = {};
@@ -3475,7 +3490,7 @@ function runAlgorithm() {
   // 绑定到全局
   window.playTimeline = () => TimelineController.togglePlay();
 
-  // 添��搜索功能
+  // 添搜索功能
   const SearchModule = {
     // 执行搜索
     searchNodes() {
@@ -5102,7 +5117,7 @@ function runAlgorithm() {
       return `
         <div class="cycle-details">
           <div>循环长度: ${anomaly.path.length}</div>
-          <div>与账户: ${anomaly.path.length}</div>
+          <div>与户: ${anomaly.path.length}</div>
           <div>总交易金额: ${this.formatAmount(anomaly.totalAmount)}</div>
           <div class="cycle-path">
             ${anomaly.path.map(nodeId => this.getNodeLabel(nodeId)).join(' → ')}
