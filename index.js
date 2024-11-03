@@ -523,7 +523,7 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         }
 
-        // 并���
+        // 并
         if (mergePair) {
           const [i, j] = mergePair;
           const newCluster = {
@@ -2732,7 +2732,7 @@ function runAlgorithm() {
       graphData.edges
         .filter(edge => 
           group.includes(edge.source) && group.includes(edge.target)
-        ) // 添加缺失的右括号
+        ) // 这是正确结束的右括号
         .forEach(edge => {
           events.push({
             time: new Date(edge.timestamp),
@@ -5951,7 +5951,7 @@ function runAlgorithm() {
     });
   });
 
-  // 在图实例创建时添加样式 - 使用已经声明的 container 变量
+  // 在图��例创建时添加样式 - 使用已经声明的 container 变量
   // 删除这行: const container = document.getElementById('container');
   if (container) {
     container.style.width = '100%';
