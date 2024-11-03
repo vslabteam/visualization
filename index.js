@@ -968,7 +968,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return filteredCycles;
     },
 
-    // 生成环路模式标识
+    // 生成环路模式��识
     generateCyclePattern(path) {
       const normalized = [...path];
       const minIndex = normalized.indexOf(Math.min(...normalized));
@@ -1122,7 +1122,7 @@ function runAlgorithm() {
         <div class="menu-item" onclick="markNode('${node.get('id')}')">标记节点</div>
         <div class="menu-item" onclick="expandNode('${node.get('id')}')">展开关联节点</div>
         <div class="menu-item" onclick="hideNode('${node.get('id')}')">隐藏节点</div>
-        <div class="menu-item" onclick="addToEvidence('${node.get('id')}')">���加到证据</div>
+        <div class="menu-item" onclick="addToEvidence('${node.get('id')}')">加到证据</div>
       `;
       
       contextMenu.style.display = 'block';
@@ -1954,7 +1954,7 @@ function runAlgorithm() {
 
     // 计算团伙风险评分
     calculateGroupRiskScore(group) {
-      // 基础分数
+      // 基���分数
       let score = group.length * 10;
 
       // 计算内部交易
@@ -2836,7 +2836,7 @@ function runAlgorithm() {
       return roles;
     },
 
-    // ��建团伙时间线
+    // 建团伙时间线
     createGroupTimeline(group, graphData) {
       const events = [];
       
@@ -5699,7 +5699,7 @@ function runAlgorithm() {
         visualizations: this.captureVisualizations()
       };
 
-      // 根据选择的格式导出
+      // 根据选择的格��导出
       const format = document.getElementById('exportFormat').value;
       switch (format) {
         case 'pdf':
@@ -5975,7 +5975,7 @@ function runAlgorithm() {
     localStorage.setItem('sectionStates', JSON.stringify(sectionStates));
   }
 
-  // 初始化面板状态
+  // 初始化面���状态
   function initializePanelStates() {
     const sectionStates = JSON.parse(localStorage.getItem('sectionStates') || '{}');
     
@@ -6072,4 +6072,74 @@ function runAlgorithm() {
     container.style.background = '#fff';
     container.style.position = 'relative';
   }
+
+  // 修改面板初始化代码
+  document.addEventListener('DOMContentLoaded', function() {
+    // 为所有 section-header 添加点击事件
+    document.querySelectorAll('.section-header').forEach(header => {
+      header.addEventListener('click', function() {
+        // 获取对应的内容区域
+        const sectionId = this.getAttribute('data-section');
+        const content = document.getElementById(sectionId);
+        
+        if (content) {
+          // 切换内容区域的显示状态
+          if (content.classList.contains('collapsed')) {
+            content.classList.remove('collapsed');
+            this.querySelector('.toggle-icon').textContent = '▼';
+          } else {
+            content.classList.add('collapsed');
+            this.querySelector('.toggle-icon').textContent = '▶';
+          }
+        }
+      });
+    });
+
+    // 初始化面板状态 - 默认展开
+    document.querySelectorAll('.section-content').forEach(content => {
+      content.classList.remove('collapsed');
+      const header = content.previousElementSibling;
+      if (header) {
+        const icon = header.querySelector('.toggle-icon');
+        if (icon) {
+          icon.textContent = '▼';
+        }
+      }
+    });
+  });
+
+  // 修改 CSS 样式
+  const style = document.createElement('style');
+  style.textContent = `
+    .section-content {
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+      max-height: 1000px; /* 设置一个足够大的值 */
+    }
+
+    .section-content.collapsed {
+      max-height: 0;
+      padding: 0;
+      margin: 0;
+    }
+
+    .section-header {
+      cursor: pointer;
+      padding: 10px;
+      background: #f5f5f5;
+      border-bottom: 1px solid #e8e8e8;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .section-header:hover {
+      background: #e6f7ff;
+    }
+
+    .toggle-icon {
+      transition: transform 0.3s ease;
+    }
+  `;
+  document.head.appendChild(style);
 }); 
