@@ -20,30 +20,54 @@ window.toggleSection = function(sectionId) {
   localStorage.setItem('sectionStates', JSON.stringify(sectionStates));
 };
 
-// 确保在 DOM 加载完成后初始化面板状态
+// 等待 DOM 加载完成后再初始化
 document.addEventListener('DOMContentLoaded', function() {
-  // 初始化面板状态
-  const sectionStates = JSON.parse(localStorage.getItem('sectionStates') || '{}');
-  Object.entries(sectionStates).forEach(([sectionId, isExpanded]) => {
-    const section = document.getElementById(sectionId);
-    if (section) {
-      if (!isExpanded) {
-        section.classList.add('collapsed');
-        const header = section.previousElementSibling;
-        const icon = header.querySelector('.toggle-icon');
-        if (icon) {
-          icon.textContent = '▶';
-        }
+  // 首先定义 RenderOptimizer
+  const RenderOptimizer = {
+    // 基础渲染优化
+    enableBasicOptimizations() {
+      if (!graph || !graph.getNodes) return;
+
+      // 节点数量大时禁用动画
+      if (graph.getNodes().length > 1000) {
+        graph.updateLayout({
+          animate: false
+        });
+      }
+
+      // 使用 GPU 加速
+      const canvas = graph.get('canvas');
+      if (canvas) {
+        canvas.set('enableCSSTransforms', true);
+      }
+    },
+
+    // 根据缩放级别调整节点细节
+    adjustNodeDetail(node, zoom) {
+      if (!node || !node.getModel) return;
+      
+      if (zoom < 0.5) {
+        graph.updateItem(node, {
+          labelCfg: { style: { opacity: 0 } },
+          style: { lineWidth: 1 }
+        });
+      } else if (zoom < 1) {
+        graph.updateItem(node, {
+          labelCfg: { style: { opacity: 0.5 } },
+          style: { lineWidth: 2 }
+        });
+      } else {
+        graph.updateItem(node, {
+          labelCfg: { style: { opacity: 1 } },
+          style: { lineWidth: 3 }
+        });
       }
     }
-  });
-});
+  };
 
-// 在文件开头获取容器元素
-const container = document.getElementById('container');
-
-// 删除后面重复的 container 声明，直接使用已定义的 container 变量
-document.addEventListener('DOMContentLoaded', function() {
+  // 获取容器元素
+  const container = document.getElementById('container');
+  
   // 检查 G6 是否正确加载
   if (typeof G6 === 'undefined') {
     console.error('G6 未能正确加载');
@@ -98,6 +122,28 @@ document.addEventListener('DOMContentLoaded', function() {
     fitView: true,
     animate: true
   });
+
+  // 创建并初始化 ResizeObserver
+  const resizeObserver = new ResizeObserver(entries => {
+    for (let entry of entries) {
+      const { width, height } = entry.contentRect;
+      console.log('容器大小变化:', width, height);
+      if (graph) {
+        graph.changeSize(width, height);
+      }
+    }
+  });
+
+  // 开始观察容器大小变化
+  resizeObserver.observe(container);
+
+  // 在数据加载前显示加载提示
+  container.innerHTML = `
+    <div class="loading-container">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">数据加载中...</div>
+    </div>
+  `;
 
   // 初始化时调用基础优化
   RenderOptimizer.enableBasicOptimizations();
@@ -249,8 +295,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 更新UI
         const top5List = document.getElementById('centralityTop5');
-        top5List.innerHTML = '';
-        sortedNodes.forEach(([nodeId, score]) => {
+        if (top5List) {
+          top5List.innerHTML = '';
+          sortedNodes.forEach(([nodeId, score]) => {
             const node = graph.findById(nodeId);
             const nodeInfo = node.getModel();
             const li = document.createElement('li');
@@ -259,12 +306,13 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // 高亮重要节点
             graph.setItemState(node, 'highlight', true);
-        });
+          });
+        }
 
         return sortedNodes;
     },
 
-    // 社区测 - 使用 G6 内置的 louvain 算法
+    // 测 - 使用 G6 内置的 louvain 算法
     detectCommunities(graph) {
         const data = {
             nodes: graph.save().nodes,
@@ -812,7 +860,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (node) {
           graph.setItemState(node, 'cycle', true);
           
-          // 高亮相连边
+          // 高亮相
           const nextNodeId = cycle.path[(index + 1) % cycle.path.length];
           const edge = graph.findEdge(nodeId, nextNodeId);
           if (edge) {
@@ -861,66 +909,70 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   };
 
-  // 运行算法的函数
-  function runAlgorithm() {
-    const algorithmType = document.getElementById('algorithmSelect').value;
-    const button = document.querySelector('.control-button[onclick="runAlgorithm()"]');
-    button.disabled = true;
-    button.textContent = '计算中...';
+// 运行算法的函数
+function runAlgorithm() {
+  const algorithmType = document.getElementById('algorithmSelect').value;
+  const button = document.querySelector('.control-button[onclick="runAlgorithm()"]');
+  button.disabled = true;
+  button.textContent = '计算中...';
 
-    try {
-      // 清除之前的高亮
-      graph.getNodes().forEach(node => {
-        graph.clearItemStates(node);
-        graph.updateItem(node, {
-          style: {
-            fill: getNodeColor(node.getModel().type)
-          }
-        });
-      });
-      graph.getEdges().forEach(edge => {
-        graph.clearItemStates(edge);
-      });
+  try {
+    // 清除��前的高亮
+    graph.getNodes().forEach(node => {
+      graph.clearItemStates(node);
+      graph.updateItem(node, {
+        style: {
+          fill: getNodeColor(node.getModel().type)
+        }
+      }); // 结束 graph.updateItem
 
-      switch (algorithmType) {
-        case 'centrality':
-          GraphAlgorithms.calculateCentrality(graph);
-          break;
-        case 'community':
-          GraphAlgorithms.detectCommunities(graph);
-          break;
-        case 'shortestPath':
-          GraphAlgorithms.analyzePaths(graph);
-          break;
-        case 'cycle':
-          const cycles = GraphAlgorithms.detectCycles(graph);
-          // 更新UI显示检测结果
-          const cycleList = document.getElementById('cycleList');
-          if (cycleList) {
-            cycleList.innerHTML = cycles.map((cycle, index) => `
-              <div class="cycle-item">
-                <div class="cycle-header">
-                  环路 ${index + 1} (风险评分: ${cycle.risk})
-                  <button onclick="GraphAlgorithms.highlightCycle(${JSON.stringify(cycle)})">
-                    查看详情
-                  </button>
-                </div>
-                <div class="cycle-type">${GraphAlgorithms.getCycleTypeLabel(cycle.type)}</div>
+    }); // 添加闭合括号以结束 graph.getNodes().forEach
+
+    graph.getEdges().forEach(edge => {
+      graph.clearItemStates(edge);
+    }); // 添加闭合括号以结束 graph.getEdges().forEach
+
+    switch (algorithmType) {
+      case 'centrality':
+        GraphAlgorithms.calculateCentrality(graph);
+        break;
+      case 'community':
+        GraphAlgorithms.detectCommunities(graph);
+        break;
+      case 'shortestPath':
+        GraphAlgorithms.analyzePaths(graph);
+        break;
+      case 'cycle':
+        const cycles = GraphAlgorithms.detectCycles(graph);
+        // 更新UI显示检测结果
+        const cycleList = document.getElementById('cycleList');
+        if (cycleList) {
+          cycleList.innerHTML = cycles.map((cycle, index) => `
+            <div class="cycle-item">
+              <div class="cycle-header">
+                环路 ${index + 1} (风险评分: ${cycle.risk})
+                <button onclick="GraphAlgorithms.highlightCycle(${JSON.stringify(cycle)})">
+                  查看详情
+                </button>
               </div>
-            `).join('');
-          }
-          break;
-      }
-    } catch (error) {
-      console.error('算法运行错误:', error);
-      alert('算法行出错，请查看控制台了解详情');
-    } finally {
-      button.disabled = false;
-      button.textContent = '运行算法';
+              <div class="cycle-type">${GraphAlgorithms.getCycleTypeLabel(cycle.type)}</div>
+            </div>
+          `).join('');
+        }
+        break;
     }
+  } catch (error) {
+    console.error('算法运行错误:', error);
+    alert('算法运行出错，请查看控制台了解详情');
+  } finally {
+    button.disabled = false;
+    button.textContent = '运行算法';
   }
+}
 
-  // 将runAlgorithm函数绑定到window对象
+
+
+  // 将 runAlgorithm 函数绑定到全局
   window.runAlgorithm = runAlgorithm;
 
   // 注册右键菜单
@@ -1726,7 +1778,7 @@ document.addEventListener('DOMContentLoaded', function() {
       };
     },
 
-    // 渲染社区分布
+    // 渲染社区分
     renderCommunityDistribution(distribution) {
       return `
         <div class="distribution-chart">
@@ -2305,7 +2357,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   };
 
-  // 绑定到全局
+  // 绑定全局
   window.saveSnapshot = () => SnapshotManager.saveSnapshot();
   window.loadSnapshot = (id) => SnapshotManager.loadSnapshot(id);
 
@@ -2561,7 +2613,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       // 交易频率异常
       const frequency = this.calculateTransactionFrequency(edges);
-      if (frequency > 10) { // 每天超过10笔交易
+      if (frequency > 10) { // 每天过10笔交易
         score += 20;
       }
 
@@ -2754,7 +2806,7 @@ document.addEventListener('DOMContentLoaded', function() {
         graph.clearItemStates(edge);
       });
 
-      // 高亮路径
+      // 高亮路
       paths.forEach((path, pathIndex) => {
         path.forEach((nodeId, index) => {
           const node = graph.findById(nodeId);
@@ -4026,7 +4078,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const node = graph.findById(nodeId);
     if (!node) return;
 
-    const label = prompt('请输入标记说明：');
+    const label = prompt('请输入标记明：');
     if (!label) return;
 
     ForensicsTools.evidence.markers.push({
@@ -4868,7 +4920,7 @@ document.addEventListener('DOMContentLoaded', function() {
       this.downloadFile(content, filename, mimeType);
     },
 
-    // 转换为CSV
+    // 转换CSV
     convertToCSV(data) {
       // 节点CSV
       const nodeHeaders = ['id', 'type', 'label'];
@@ -5004,7 +5056,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return `
         <div class="cycle-details">
           <div>循环长度: ${anomaly.path.length}</div>
-          <div>参与账户: ${anomaly.path.length}</div>
+          <div>���与账户: ${anomaly.path.length}</div>
           <div>总交易金额: ${this.formatAmount(anomaly.totalAmount)}</div>
           <div class="cycle-path">
             ${anomaly.path.map(nodeId => this.getNodeLabel(nodeId)).join(' → ')}
@@ -5310,7 +5362,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 处理拓扑数据
     processTopologyData(data) {
-      // 实现拓扑数据处理逻辑
+      // 实现扑数据处理逻辑
     },
 
     // 处理风险数据
@@ -5843,16 +5895,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('边数量:', graph.getEdges().length);
   });
 
-  // 监听容器大小
-  const resizeObserver = new ResizeObserver(entries => {
-    for (let entry of entries) {
-      const { width, height } = entry.contentRect;
-      console.log('容器大小变化:', width, height);
-      graph.changeSize(width, height);
-    }
-  });
 
-  resizeObserver.observe(container);
 
   // 在数据加载前显示
   container.innerHTML = `
@@ -5889,8 +5932,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // 在图实例创建时添加样式
-  const container = document.getElementById('container');
+  // 在图实例创建时添加样式 - 使用已经声明的 container 变量
+  // 删除这行: const container = document.getElementById('container');
   if (container) {
     container.style.width = '100%';
     container.style.height = '100%';
