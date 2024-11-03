@@ -68,16 +68,13 @@ document.addEventListener('DOMContentLoaded', function() {
   // 获取容器元素
   const container = document.getElementById('container');
   
-  // 检查 G6 是否正确加载
-  if (typeof G6 === 'undefined') {
-    console.error('G6 未能正确加载');
-    return;
-  }
-
   if (!container) {
     console.error('找不到容器元素');
     return;
   }
+
+  // 清空容器
+  container.innerHTML = '';
   
   // 设置容器样式
   container.style.width = '100%';
@@ -90,9 +87,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 始化图实例
   const graph = new G6.Graph({
-    container: 'container',
-    width: container.scrollWidth,
-    height: container.scrollHeight || 500,
+    container: container, // 直接传入 DOM 元素而不是 ID
+    width: container.offsetWidth,
+    height: container.offsetHeight,
     modes: {
       default: ['drag-canvas', 'zoom-canvas', 'drag-node', 'click-select']
     },
@@ -248,31 +245,16 @@ document.addEventListener('DOMContentLoaded', function() {
       console.log('开始处理数据...');
       const processedData = preprocessData(data);
       console.log('处理后的数据:', processedData);
-      
-      // 检查 loading-container 元素
-      const loadingContainers = document.querySelectorAll('.loading-container');
-      console.log('找到的 loading-container 元素数量:', loadingContainers.length);
-      loadingContainers.forEach((container, index) => {
-        console.log(`loading-container ${index} 的样式:`, window.getComputedStyle(container));
-      });
-      
-      // 检查 container 元素
-      const container = document.getElementById('container');
-      console.log('container 元素:', container);
-      if (container) {
-        console.log('container 尺寸:', {
-          offsetWidth: container.offsetWidth,
-          offsetHeight: container.offsetHeight,
-          clientWidth: container.clientWidth,
-          clientHeight: container.clientHeight,
-          scrollWidth: container.scrollWidth,
-          scrollHeight: container.scrollHeight,
-          style: container.style
-        });
-      }
-      
-      // 检查 Canvas 元素
-      const canvas = document.querySelector('#container canvas');
+
+      // 移除加载提示
+      loadingContainer.remove();
+
+      // 渲染图
+      graph.data(processedData);
+      graph.render();
+
+      // 检查 Canvas 是否创建成功
+      const canvas = container.querySelector('canvas');
       console.log('Canvas 元素:', canvas);
       if (canvas) {
         console.log('Canvas 尺寸:', {
@@ -282,49 +264,32 @@ document.addEventListener('DOMContentLoaded', function() {
           offsetHeight: canvas.offsetHeight,
           style: canvas.style
         });
+      } else {
+        console.error('Canvas 未能创建');
       }
 
-      try {
-        // 清除加载提示并渲染图
-        if (container) {
-          container.innerHTML = '';
-        }
-        
-        // 渲染图
-        graph.data(processedData);
-        graph.render();
-        
-        // 更新统计信息
-        updateStats(processedData);
-        
-        // 适应画布
-        graph.fitView();
-        
-        console.log('图渲染完成');
-        console.log('节点数量:', graph.getNodes().length);
-        console.log('边数量:', graph.getEdges().length);
-
-        // 再次检查 Canvas 元素
-        const canvasAfterRender = document.querySelector('#container canvas');
-        console.log('渲染后的 Canvas 元素:', canvasAfterRender);
-        if (canvasAfterRender) {
-          console.log('渲染后的 Canvas 尺寸:', {
-            width: canvasAfterRender.width,
-            height: canvasAfterRender.height,
-            offsetWidth: canvasAfterRender.offsetWidth,
-            offsetHeight: canvasAfterRender.offsetHeight,
-            style: canvasAfterRender.style
-          });
-        }
-
-      } catch (renderError) {
-        console.error('渲染过程中出错:', renderError);
-        throw renderError;
-      }
+      // 更新统计信息
+      updateStats(processedData);
+      
+      // 适应画布
+      graph.fitView();
+      
+      console.log('图渲染完成');
+      console.log('节点数量:', graph.getNodes().length);
+      console.log('边数量:', graph.getEdges().length);
     })
     .catch(error => {
       console.error('加载数据失败，详细错误:', error);
       console.error('错误堆栈:', error.stack);
+      
+      // 显示错误信息
+      loadingContainer.innerHTML = `
+        <div class="error-message">
+          数据加载失败，请刷新页面重试
+          <br>
+          错误信息: ${error.message}
+        </div>
+      `;
     });
 
   // 添加窗口大小改变的监听器
@@ -636,7 +601,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const subgraphs = [];
       const visited = new Set();
 
-      // 从未访问的节点开始��展子图
+      // 从未访问的节点开始展子图
       data.nodes.forEach(startNode => {
         if (visited.has(startNode.id)) return;
 
@@ -1112,7 +1077,7 @@ function runAlgorithm() {
 
   // 添加框选功能 - 修复版本
   const enableLasso = () => {
-    // 添加框选行为
+    // 添加框选��为
     graph.addBehaviors(
       {
         type: 'lasso-select',
@@ -1534,7 +1499,7 @@ function runAlgorithm() {
       const timelineEvents = [];
       const data = graph.save();
 
-      // 收集所有时��关的事件
+      // 收集所有时关的事件
       data.edges.forEach(edge => {
         const sourceNode = data.nodes.find(n => n.id === edge.source);
         const targetNode = data.nodes.find(n => n.id === edge.target);
@@ -2161,7 +2126,7 @@ function runAlgorithm() {
       };
     },
 
-    // 计��边类型数量
+    // 计边类型数量
     countEdgeTypes() {
       const data = graph.save();
       const typeCounts = {};
