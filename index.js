@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 修改图实例初始化代码
   const graph = new G6.Graph({
-    container: 'container', // 改为直接传入 container 对象
+    container: container, // 直接传入 DOM 元素而不是 ID 字符串
     width: container.offsetWidth || 800,
     height: container.offsetHeight || 600,
     modes: {
@@ -237,10 +237,11 @@ document.addEventListener('DOMContentLoaded', function() {
     .then(response => response.json())
     .then(data => {
       console.log('原始数据:', data);
+      console.log('开始处理数据...');
       const processedData = preprocessData(data);
       console.log('处理后的数据:', processedData);
       
-      // 清空容器内容
+      // 在渲染前确保容器是空的
       container.innerHTML = '';
       
       // 渲染图
@@ -253,13 +254,8 @@ document.addEventListener('DOMContentLoaded', function() {
         graph.changeSize(width, height);
       }
       
+      // 渲染图
       graph.render();
-      
-      // 更新统计信息
-      updateStats(processedData);
-      
-      // 适应画布
-      graph.fitView();
       
       // 检查 Canvas 是否创建成功
       const canvas = container.querySelector('canvas');
@@ -270,8 +266,25 @@ document.addEventListener('DOMContentLoaded', function() {
           style: canvas.style.cssText
         });
       } else {
-        console.error('Canvas 创建失败');
+        console.error('Canvas 未能创建');
+        // 添加更多诊断信息
+        console.log('容器状态:', {
+          width: container.offsetWidth,
+          height: container.offsetHeight,
+          innerHTML: container.innerHTML,
+          style: container.style.cssText
+        });
       }
+      
+      // 更新统计信息
+      updateStats(processedData);
+      
+      // 适应画布
+      graph.fitView();
+      
+      console.log('图渲染完成');
+      console.log('节点数量:', graph.getNodes().length);
+      console.log('边数量:', graph.getEdges().length);
     })
     .catch(error => {
       console.error('数据加载失败:', error);
@@ -1273,7 +1286,7 @@ function runAlgorithm() {
 
   // 在现有码后添加新的功能模块
 
-  // 异常检测模块
+  // 异��检测模块
   const AnomalyDetection = {
     // 检测常交易模式
     detectAnomalies() {
@@ -1317,7 +1330,7 @@ function runAlgorithm() {
       `).join('');
     },
 
-    // 检测循环交易
+    // 检测循环交���
     detectCycles(data) {
       const cycles = [];
       const visited = new Set();
@@ -1743,7 +1756,7 @@ function runAlgorithm() {
       `;
     },
 
-    // 渲染中心度分析结果
+    // 渲染中心���分析结果
     renderCentralityResults(centrality) {
       const sortedNodes = Object.entries(centrality)
         .sort(([, a], [, b]) => b - a)
@@ -3009,7 +3022,7 @@ function runAlgorithm() {
 
     // 分析周期
     analyzePeriodicity(transactions) {
-      // 简单的周期���检测
+      // 简单的周期检测
       const hourCounts = new Array(24).fill(0);
       const dayCounts = new Array(7).fill(0);
 
@@ -4641,7 +4654,7 @@ function runAlgorithm() {
   window.undo = () => HistoryManager.undo();
   window.redo = () => HistoryManager.redo();
 
-  // 数据优化管理器
+  // 数据优��管理器
   const DataOptimizer = {
     // 压缩图数据
     compressGraphData(data) {
@@ -5370,7 +5383,7 @@ function runAlgorithm() {
       // 实现时间数据处理逻辑
     },
 
-    // 处理金额数据
+    // 处理��额数据
     processAmountData(data) {
       // 实现金额数据处理逻辑
     },
