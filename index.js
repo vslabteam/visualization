@@ -87,14 +87,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 修改图实例初始化代码
   const graph = new G6.Graph({
-    container: document.getElementById('container'), // 直接传入 DOM 元素
-    width: container.offsetWidth || 800,
-    height: container.offsetHeight || 600,
-    // 添加自动适应容器大小
-    autofit: true,
+    container: 'container', // 使用容器的 ID
+    width: container.offsetWidth,
+    height: container.offsetHeight,
+    // 移除 autofit 配置
     fitView: true,
     fitViewPadding: [20, 40, 20, 40],
-    // 修改渲染器设置
+    // 使用 canvas 渲染器
     renderer: 'canvas',
     // 修改布局配置
     layout: {
@@ -103,18 +102,9 @@ document.addEventListener('DOMContentLoaded', function() {
       nodeStrength: -50,
       edgeStrength: 0.1,
       linkDistance: 100,
-      // 添加布局收敛条件
+      // 移除布局回调
       alphaDecay: 0.01,
-      alphaMin: 0.001,
-      onTick: () => {
-        // 布局迭代时的回调
-        console.log('布局迭代中...');
-      },
-      onLayoutEnd: () => {
-        // 布局完成时的回调
-        console.log('布局计算完成');
-        graph.fitView();
-      }
+      alphaMin: 0.001
     },
     // 修改默认节点配置
     defaultNode: {
@@ -145,11 +135,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }
     },
-    // 添加动画配置
-    animate: true,
-    animateCfg: {
-      duration: 500,
-      easing: 'easeCubic'
+    // 添加基础交互模式
+    modes: {
+      default: ['drag-canvas', 'zoom-canvas', 'drag-node', 'click-select']
     }
   });
 
@@ -283,7 +271,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('nodeCount').textContent = data.nodes.length || 0;
     document.getElementById('edgeCount').textContent = data.edges.length || 0;
     
-    // 更新不同类型节点���统计
+    // 更新不同类型节点统计
     document.getElementById('accountCount').textContent = 
       data.nodes.filter(node => node.type === 'account').length || 0;
     document.getElementById('transactionCount').textContent = 
@@ -301,7 +289,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const processedData = preprocessData(data);
       console.log('处理后的数据:', processedData);
       
-      // 在渲染前确保容器是空的
+      // 清空容器内容
       container.innerHTML = '';
       
       // 渲染图
@@ -318,23 +306,24 @@ document.addEventListener('DOMContentLoaded', function() {
       graph.render();
       
       // 检查 Canvas 是否创建成功
-      const canvas = container.querySelector('canvas');
-      if (canvas) {
-        console.log('Canvas 创建成功:', {
-          width: canvas.width,
-          height: canvas.height,
-          style: canvas.style.cssText
-        });
-      } else {
-        console.error('Canvas 未能创建');
-        // 添加更多诊断信息
-        console.log('容器状态:', {
-          width: container.offsetWidth,
-          height: container.offsetHeight,
-          innerHTML: container.innerHTML,
-          style: container.style.cssText
-        });
-      }
+      setTimeout(() => {
+        const canvas = container.querySelector('canvas');
+        if (canvas) {
+          console.log('Canvas 创建成功:', {
+            width: canvas.width,
+            height: canvas.height,
+            style: canvas.style.cssText
+          });
+        } else {
+          console.error('Canvas 未能创建');
+          console.log('容器状态:', {
+            width: container.offsetWidth,
+            height: container.offsetHeight,
+            innerHTML: container.innerHTML,
+            style: container.style.cssText
+          });
+        }
+      }, 100);
       
       // 更新统计信息
       updateStats(processedData);
@@ -875,7 +864,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       const avgInterval = totalInterval / (transactions.length - 1);
 
-      // 间间隔越短，风险越高
+      // 间间隔越��，风险越高
       return Math.min(30, Math.round(30 * (1 - avgInterval / (24 * 60 * 60 * 1000))));
     },
 
@@ -1734,14 +1723,14 @@ function runAlgorithm() {
             <div class="transaction-group">
               <div>账户: ${t.accountId}</div>
               <div>交易数量: ${t.transactions.length}</div>
-              <div>时间跨度: ${t.timeSpan / 1000}秒</div>
+              <div>时间跨度: ${t.timeSpan / 1000}��</div>
             </div>
           `).join('')}
         </div>
       `;
     },
 
-    // ��染证据记录
+    // 染证据记录
     renderEvidence(evidence) {
       return `
         <div class="evidence-view">
@@ -3122,7 +3111,7 @@ function runAlgorithm() {
       return bursts;
     },
 
-    // 定义常量
+    // ��义常量
     minPts: 3,  // DBSCAN算法的最小点数
     minClusterSize: 3,  // 最小团伙规模
 
@@ -5073,7 +5062,7 @@ function runAlgorithm() {
   window.importData = (file) => DataIOManager.importData(file);
   window.exportData = (format) => DataIOManager.exportData(format);
 
-  // 异常���测可视化模块
+  // 异常测可视化模块
   const AnomalyVisualization = {
     // 更新异常检测面板
     updateAnomalyPanel(anomalies) {
@@ -5140,7 +5129,7 @@ function runAlgorithm() {
       }
     },
 
-    // 渲染循环交易��情
+    // 渲染循环交易情
     renderCycleDetails(anomaly) {
       return `
         <div class="cycle-details">
