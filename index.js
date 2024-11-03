@@ -234,7 +234,7 @@ document.addEventListener('DOMContentLoaded', function() {
       data.nodes.filter(node => node.type === 'merchant').length || 0;
   };
 
-  // 修改数据加载部分
+  // 修改数据加载部分，添加更多诊断日志
   fetch('./dataset/bankFraud.json')
     .then(response => {
       if (!response.ok) {
@@ -245,36 +245,68 @@ document.addEventListener('DOMContentLoaded', function() {
     })
     .then(data => {
       console.log('原始数据:', data);
+      console.log('开始处理数据...');
       const processedData = preprocessData(data);
       console.log('处理后的数据:', processedData);
       
-      // 清空容器内容
-      container.innerHTML = '';
+      // 获取并检查加载提示元素
+      const loadingContainer = document.querySelector('.loading-container');
+      console.log('加载提示元素:', loadingContainer);
       
-      // 渲染图
-      graph.data(processedData);
-      graph.render();
-      
-      // 更新统计信息
-      updateStats(processedData);
-      
-      // 适应画布
-      graph.fitView();
-      
-      console.log('图渲染完成');
-      console.log('节点数量:', graph.getNodes().length);
-      console.log('边数量:', graph.getEdges().length);
+      try {
+        console.log('开始渲染图...');
+        // 清空容器内容
+        container.innerHTML = '';
+        
+        // 渲染图
+        graph.data(processedData);
+        console.log('数据已设置到图实例');
+        
+        graph.render();
+        console.log('图已渲染');
+        
+        // 更新统计信息
+        updateStats(processedData);
+        console.log('统计信息已更新');
+        
+        // 适应画布
+        graph.fitView();
+        console.log('视图已适配');
+        
+        console.log('图渲染完成');
+        console.log('节点数量:', graph.getNodes().length);
+        console.log('边数量:', graph.getEdges().length);
+
+        // 检查图是否正确渲染
+        const canvas = document.querySelector('#container canvas');
+        console.log('Canvas元素:', canvas);
+        if (canvas) {
+          console.log('Canvas尺寸:', {
+            width: canvas.width,
+            height: canvas.height,
+            style: canvas.style.cssText
+          });
+        }
+
+      } catch (renderError) {
+        console.error('渲染过程中出错:', renderError);
+      }
     })
     .catch(error => {
       console.error('加载数据失败，详细错误:', error);
       console.error('错误堆栈:', error.stack);
       
       // 显示错误信息
-      container.innerHTML = `
-        <div class="error-message">
-          数据加载失败，请刷新页面重试
-        </div>
-      `;
+      const loadingContainer = document.querySelector('.loading-container');
+      if (loadingContainer) {
+        loadingContainer.innerHTML = `
+          <div class="error-message">
+            数据加载失败，请刷新页面重试
+            <br>
+            错误信息: ${error.message}
+          </div>
+        `;
+      }
 
       // 更新统计信息为 0
       updateStats({ nodes: [], edges: [] });
@@ -666,7 +698,7 @@ document.addEventListener('DOMContentLoaded', function() {
       );
     },
 
-    // 环路检测算法
+    // 环路检测算���
     detectCycles(graph) {
       const data = graph.save();
       const cycles = [];
@@ -1269,7 +1301,7 @@ function runAlgorithm() {
   `;
   document.head.appendChild(style);
 
-  // 在现有��码后添加新的功能模块
+  // 在现有码后添加新的功能模块
 
   // 异常检测模块
   const AnomalyDetection = {
@@ -3443,7 +3475,7 @@ function runAlgorithm() {
   // 绑定到全局
   window.playTimeline = () => TimelineController.togglePlay();
 
-  // 添加搜索功能
+  // 添��搜索功能
   const SearchModule = {
     // 执行搜索
     searchNodes() {
@@ -3962,7 +3994,7 @@ function runAlgorithm() {
       return XLSX.utils.json_to_sheet([analysis]);
     },
 
-    // 生成PDF��告
+    // 生成PDF告
     async generatePDFReport() {
       const doc = new jsPDF();
       const report = await ReportExport.generateFullReport();
