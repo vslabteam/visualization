@@ -289,57 +289,101 @@ document.addEventListener('DOMContentLoaded', function() {
       const processedData = preprocessData(data);
       console.log('处理后的数据:', processedData);
       
-      // 清空容器内容
-      container.innerHTML = '';
-      
-      // 渲染图
-      graph.data(processedData);
-      
-      // 在渲染前确保容器尺寸正确
-      const width = container.offsetWidth;
-      const height = container.offsetHeight;
-      if (width && height) {
-        graph.changeSize(width, height);
-      }
-      
-      // 渲染图
-      graph.render();
-      
-      // 检查 Canvas 是否创建成功
-      setTimeout(() => {
-        const canvas = container.querySelector('canvas');
-        if (canvas) {
-          console.log('Canvas 创建成功:', {
-            width: canvas.width,
-            height: canvas.height,
-            style: canvas.style.cssText
-          });
-        } else {
-          console.error('Canvas 未能创建');
-          console.log('容器状态:', {
-            width: container.offsetWidth,
-            height: container.offsetHeight,
-            innerHTML: container.innerHTML,
-            style: container.style.cssText
-          });
+      try {
+        // 先移除加载提示
+        const loadingContainer = document.querySelector('.loading-container');
+        if (loadingContainer) {
+          loadingContainer.remove();
         }
-      }, 100);
-      
-      // 更新统计信息
-      updateStats(processedData);
-      
-      // 适应画布
-      graph.fitView();
-      
-      console.log('图渲染完成');
-      console.log('节点数量:', graph.getNodes().length);
-      console.log('边数量:', graph.getEdges().length);
+
+        // 确保容器是空的
+        container.innerHTML = '';
+        
+        // 重新初始化图实例
+        const graph = new G6.Graph({
+          container: container, // 直接传入 DOM 元素
+          width: container.offsetWidth,
+          height: container.offsetHeight,
+          modes: {
+            default: ['drag-canvas', 'zoom-canvas', 'drag-node', 'click-select']
+          },
+          defaultNode: {
+            size: 30,
+            style: {
+              fill: '#91d5ff',
+              stroke: '#40a9ff',
+              lineWidth: 2
+            }
+          },
+          defaultEdge: {
+            style: {
+              stroke: '#91d5ff',
+              lineWidth: 2,
+              endArrow: true
+            }
+          },
+          renderer: 'canvas',
+          layout: {
+            type: 'force',
+            preventOverlap: true,
+            nodeStrength: -50,
+            edgeStrength: 0.1,
+            linkDistance: 100
+          },
+          fitView: true,
+          animate: true
+        });
+
+        // 渲染数据
+        graph.data(processedData);
+        graph.render();
+        
+        // 更新统计信息
+        updateStats(processedData);
+        
+        // 适应画布
+        graph.fitView();
+        
+        console.log('图渲染完成');
+        console.log('节点数量:', graph.getNodes().length);
+        console.log('边数量:', graph.getEdges().length);
+
+        // 检查 Canvas 是否创建成功
+        setTimeout(() => {
+          const canvas = container.querySelector('canvas');
+          if (canvas) {
+            console.log('Canvas 创建成功:', {
+              width: canvas.width,
+              height: canvas.height,
+              style: canvas.style.cssText
+            });
+          } else {
+            console.error('Canvas 未能创建');
+            console.log('容器状态:', {
+              width: container.offsetWidth,
+              height: container.offsetHeight,
+              innerHTML: container.innerHTML,
+              style: container.style.cssText
+            });
+          }
+        }, 100);
+
+      } catch (error) {
+        console.error('渲染过程中出错:', error);
+        container.innerHTML = `
+          <div class="error-message">
+            渲染失败，请刷新页面重试<br>
+            错误信息: ${error.message}
+          </div>
+        `;
+      }
     })
     .catch(error => {
       console.error('数据加载失败:', error);
       container.innerHTML = `
         <div class="error-message">
-          数据加载失败，请刷新页面重试
+          数据加载失败，请刷新页面重试<br>
+          错误信息: ${error.message}
         </div>
       `;
     });
@@ -864,7 +908,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       const avgInterval = totalInterval / (transactions.length - 1);
 
-      // 间间隔越��，风险越高
+      // 间间隔越，风险越高
       return Math.min(30, Math.round(30 * (1 - avgInterval / (24 * 60 * 60 * 1000))));
     },
 
@@ -1723,7 +1767,7 @@ function runAlgorithm() {
             <div class="transaction-group">
               <div>账户: ${t.accountId}</div>
               <div>交易数量: ${t.transactions.length}</div>
-              <div>时间跨度: ${t.timeSpan / 1000}��</div>
+              <div>时间跨度: ${t.timeSpan / 1000}</div>
             </div>
           `).join('')}
         </div>
@@ -2681,7 +2725,7 @@ function runAlgorithm() {
     calculateNodeRiskScore(node, edges) {
       let score = 0;
 
-      // 易金额异常
+      // ��金额异常
       const amounts = edges.map(e => e.amount || 0);
       const avgAmount = amounts.reduce((a, b) => a + b, 0) / amounts.length;
       const maxAmount = Math.max(...amounts);
@@ -3111,7 +3155,7 @@ function runAlgorithm() {
       return bursts;
     },
 
-    // ��义常量
+    // 义常量
     minPts: 3,  // DBSCAN算法的最小点数
     minClusterSize: 3,  // 最小团伙规模
 
@@ -5481,9 +5525,9 @@ function runAlgorithm() {
         // 节点类型
         'node.account': '账户',
         'node.merchant': '商户',
-        'node.transaction': '交易',
+        'node.transaction': '交��',
 
-        // 算法分
+        // 算法��
         'algorithm.centrality': '中心度分析',
         'algorithm.community': '社区检测',
         'algorithm.path': '路径分析',
