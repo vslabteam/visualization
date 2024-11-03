@@ -85,11 +85,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
   console.log('G6 version:', G6.version);
 
-  // 始化图实例
+  // 修改图实例初始化代码
   const graph = new G6.Graph({
-    container: container, // 直接传入 DOM 元素而不是 ID
-    width: container.offsetWidth,
-    height: container.offsetHeight,
+    container: 'container', // 改为直接传入 container 对象
+    width: container.offsetWidth || 800,
+    height: container.offsetHeight || 600,
     modes: {
       default: ['drag-canvas', 'zoom-canvas', 'drag-node', 'click-select']
     },
@@ -108,6 +108,7 @@ document.addEventListener('DOMContentLoaded', function() {
         endArrow: true
       }
     },
+    // 使用 canvas 渲染器
     renderer: 'canvas',
     layout: {
       type: 'force',
@@ -233,61 +234,50 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 修改数据加载部分，添加更多诊断日志
   fetch('./dataset/bankFraud.json')
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      console.log('成功获取数据文件');
-      return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
       console.log('原始数据:', data);
-      console.log('开始处理数据...');
       const processedData = preprocessData(data);
       console.log('处理后的数据:', processedData);
-
-      // 移除加载提示
-      loadingContainer.remove();
-
+      
+      // 清空容器内容
+      container.innerHTML = '';
+      
       // 渲染图
       graph.data(processedData);
-      graph.render();
-
-      // 检查 Canvas 是否创建成功
-      const canvas = container.querySelector('canvas');
-      console.log('Canvas 元素:', canvas);
-      if (canvas) {
-        console.log('Canvas 尺寸:', {
-          width: canvas.width,
-          height: canvas.height,
-          offsetWidth: canvas.offsetWidth,
-          offsetHeight: canvas.offsetHeight,
-          style: canvas.style
-        });
-      } else {
-        console.error('Canvas 未能创建');
+      
+      // 在渲染前确保容器尺寸正确
+      const width = container.offsetWidth;
+      const height = container.offsetHeight;
+      if (width && height) {
+        graph.changeSize(width, height);
       }
-
+      
+      graph.render();
+      
       // 更新统计信息
       updateStats(processedData);
       
       // 适应画布
       graph.fitView();
       
-      console.log('图渲染完成');
-      console.log('节点数量:', graph.getNodes().length);
-      console.log('边数量:', graph.getEdges().length);
+      // 检查 Canvas 是否创建成功
+      const canvas = container.querySelector('canvas');
+      if (canvas) {
+        console.log('Canvas 创建成功:', {
+          width: canvas.width,
+          height: canvas.height,
+          style: canvas.style.cssText
+        });
+      } else {
+        console.error('Canvas 创建失败');
+      }
     })
     .catch(error => {
-      console.error('加载数据失败，详细错误:', error);
-      console.error('错误堆栈:', error.stack);
-      
-      // 显示错误信息
-      loadingContainer.innerHTML = `
+      console.error('数据加载失败:', error);
+      container.innerHTML = `
         <div class="error-message">
           数据加载失败，请刷新页面重试
-          <br>
-          错误信息: ${error.message}
         </div>
       `;
     });
@@ -1077,7 +1067,7 @@ function runAlgorithm() {
 
   // 添加框选功能 - 修复版本
   const enableLasso = () => {
-    // 添加框选��为
+    // 添加框选为
     graph.addBehaviors(
       {
         type: 'lasso-select',
@@ -2739,7 +2729,6 @@ function runAlgorithm() {
       graphData.edges
         .filter(edge => 
           group.includes(edge.source) && group.includes(edge.target)
-        ) // 这是正确结束的右括号
         .forEach(edge => {
           events.push({
             time: new Date(edge.timestamp),
@@ -3020,7 +3009,7 @@ function runAlgorithm() {
 
     // 分析周期
     analyzePeriodicity(transactions) {
-      // 简单的周期性检测
+      // 简单的周期���检测
       const hourCounts = new Array(24).fill(0);
       const dayCounts = new Array(7).fill(0);
 
