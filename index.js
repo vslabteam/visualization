@@ -290,28 +290,94 @@ document.addEventListener('DOMContentLoaded', function() {
       console.log('处理后的数据:', processedData);
       
       try {
-        // 先移除加载提示
+        // 获取并移除加载提示
         const loadingContainer = document.querySelector('.loading-container');
-        if (loadingContainer && loadingContainer.parentNode) {
-          loadingContainer.parentNode.removeChild(loadingContainer);
+        if (loadingContainer) {
+          console.log('移除加载提示');
+          loadingContainer.remove(); // 使用 remove() 而不是修改 innerHTML
         }
 
+        // 确保容器是空的
+        const container = document.getElementById('container');
+        console.log('清空容器内容');
+        container.innerHTML = '';
+
+        // 重新初始化图实例
+        console.log('初始化图实例');
+        const graph = new G6.Graph({
+          container: container, // 直接传入 DOM 元素
+          width: container.offsetWidth,
+          height: container.offsetHeight,
+          modes: {
+            default: ['drag-canvas', 'zoom-canvas', 'drag-node', 'click-select']
+          },
+          defaultNode: {
+            size: 30,
+            style: {
+              fill: '#91d5ff',
+              stroke: '#40a9ff',
+              lineWidth: 2
+            }
+          },
+          defaultEdge: {
+            style: {
+              stroke: '#91d5ff',
+              lineWidth: 2,
+              endArrow: true
+            }
+          },
+          renderer: 'canvas',
+          layout: {
+            type: 'force',
+            preventOverlap: true,
+            nodeStrength: -50,
+            edgeStrength: 0.1,
+            linkDistance: 100
+          },
+          fitView: true,
+          animate: true
+        });
+
         // 渲染数据
+        console.log('渲染数据');
         graph.data(processedData);
         graph.render();
         
         // 更新统计信息
+        console.log('更新统计信息');
         updateStats(processedData);
         
         // 适应画布
+        console.log('适应画布');
         graph.fitView();
         
         console.log('图渲染完成');
         console.log('节点数量:', graph.getNodes().length);
         console.log('边数量:', graph.getEdges().length);
 
+        // 检查渲染结果
+        setTimeout(() => {
+          const canvas = container.querySelector('canvas');
+          if (canvas) {
+            console.log('Canvas 创建成功:', {
+              width: canvas.width,
+              height: canvas.height,
+              style: canvas.style.cssText
+            });
+          } else {
+            console.error('Canvas 未能创建');
+            console.log('容器状态:', {
+              width: container.offsetWidth,
+              height: container.offsetHeight,
+              innerHTML: container.innerHTML,
+              style: container.style.cssText
+            });
+          }
+        }, 100);
+
       } catch (error) {
         console.error('渲染过程中出错:', error);
+        const container = document.getElementById('container');
         container.innerHTML = `
           <div class="error-message">
             渲染失败，请刷新页面重试<br>
@@ -322,11 +388,7 @@ document.addEventListener('DOMContentLoaded', function() {
     })
     .catch(error => {
       console.error('数据加载失败:', error);
-      // 显示错误信息并移除加载提示
-      const loadingContainer = document.querySelector('.loading-container');
-      if (loadingContainer && loadingContainer.parentNode) {
-        loadingContainer.parentNode.removeChild(loadingContainer);
-      }
+      const container = document.getElementById('container');
       container.innerHTML = `
         <div class="error-message">
           数据加载失败，请刷新页面重试<br>
@@ -1060,7 +1122,7 @@ function runAlgorithm() {
         <div class="menu-item" onclick="markNode('${node.get('id')}')">标记节点</div>
         <div class="menu-item" onclick="expandNode('${node.get('id')}')">展开关联节点</div>
         <div class="menu-item" onclick="hideNode('${node.get('id')}')">隐藏节点</div>
-        <div class="menu-item" onclick="addToEvidence('${node.get('id')}')">添加到证据</div>
+        <div class="menu-item" onclick="addToEvidence('${node.get('id')}')">���加到证据</div>
       `;
       
       contextMenu.style.display = 'block';
@@ -2774,7 +2836,7 @@ function runAlgorithm() {
       return roles;
     },
 
-    // 创建团伙时间线
+    // ��建团伙时间线
     createGroupTimeline(group, graphData) {
       const events = [];
       
