@@ -39,206 +39,41 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
+// 在文件开头获取容器元素
+const container = document.getElementById('container');
+
+// 删除后面重复的 container 声明，直接使用已定义的 container 变量
 document.addEventListener('DOMContentLoaded', function() {
   // 检查 G6 是否正确加载
   if (typeof G6 === 'undefined') {
     console.error('G6 未能正确加载');
     return;
   }
-  
-  console.log('G6 version:', G6.version);
 
-  // 修改统计信息的函数
-  const updateStats = (data) => {
-    document.getElementById('nodeCount').textContent = data.nodes.length;
-    document.getElementById('edgeCount').textContent = data.edges.length;
-    document.getElementById('accountCount').textContent = 
-      data.nodes.filter(node => node.type === 'account').length;
-    document.getElementById('transactionCount').textContent = 
-      data.nodes.filter(node => node.type === 'payment').length;
-    document.getElementById('merchantCount').textContent = 
-      data.nodes.filter(node => node.type === 'merchant').length;
-  };
-
-  // 修改节点颜色配置
-  const getNodeColor = (type) => {
-    const colors = {
-      'account': '#91d5ff',
-      'credit-card': '#ffd591',
-      'payment': '#87e8de',
-      'loan': '#ff7875',
-      'new-account': '#95de64',
-      'bank': '#69c0ff',
-      'address': '#b7eb8f',
-      'phone': '#adc6ff',
-      'merchant': '#ffadd2',
-      'default': '#d3adf7'
-    };
-    return colors[type] || colors.default;
-  };
-
-  // 注册不同类型的节点
-  const registerCustomNodes = () => {
-    const nodeTypes = ['account', 'transaction', 'merchant', 'default'];
-    
-    nodeTypes.forEach(type => {
-      G6.registerNode(type, {
-        draw(cfg, group) {
-          const keyShape = group.addShape('circle', {
-            attrs: {
-              x: 0,
-              y: 0,
-              r: 20,
-              fill: getNodeColor(type),
-              stroke: '#5b8ff9',
-            },
-            name: 'circle-shape',
-          });
-
-          // 添加图标
-          group.addShape('image', {
-            attrs: {
-              x: -12,
-              y: -12,
-              width: 24,
-              height: 24,
-              img: `images/${type}.svg`
-            },
-            name: 'icon-shape',
-          });
-
-          if (cfg.label) {
-            group.addShape('text', {
-              attrs: {
-                text: cfg.label,
-                x: 0,
-                y: 30,
-                textAlign: 'center',
-                textBaseline: 'middle',
-                fill: '#666',
-                fontSize: 12
-              },
-              name: 'text-shape'
-            });
-          }
-
-          return keyShape;
-        },
-      }, 'circle');
-    });
-  };
-
-  try {
-    registerCustomNodes();
-  } catch (error) {
-    console.error('注册节点时出错:', error);
-  }
-
-  // 初始化图实例
-  const container = document.getElementById('container');
   if (!container) {
     console.error('找不到容器元素');
     return;
   }
+  
+  // 设置容器样式
+  container.style.width = '100%';
+  container.style.height = '100%';
+  container.style.minHeight = '500px';
+  container.style.background = '#fff';
+  container.style.position = 'relative';
 
-  // 保留最开始的 RenderOptimizer 声明，删除后面的重复声明
-  const RenderOptimizer = {
-    // 基础渲染优化
-    enableBasicOptimizations() {
-        if (!graph || !graph.getNodes) return;
+  console.log('G6 version:', G6.version);
 
-        // 节点数量大时禁用动画
-        if (graph.getNodes().length > 1000) {
-            graph.updateLayout({
-                animate: false
-            });
-        }
-
-        // 使用 GPU 加速
-        const canvas = graph.get('canvas');
-        if (canvas) {
-            canvas.set('enableCSSTransforms', true);
-        }
-    },
-
-    // 根据缩放级别调整节点细节
-    adjustNodeDetail(node, zoom) {
-        if (!node || !node.getModel) return;
-        
-        const model = node.getModel();
-        if (zoom < 0.5) {
-            graph.updateItem(node, {
-                labelCfg: { style: { opacity: 0 } },
-                style: { lineWidth: 1 }
-            });
-        } else if (zoom < 1) {
-            graph.updateItem(node, {
-                labelCfg: { style: { opacity: 0.5 } },
-                style: { lineWidth: 2 }
-            });
-        } else {
-            graph.updateItem(node, {
-                labelCfg: { style: { opacity: 1 } },
-                style: { lineWidth: 3 }
-            });
-        }
-    },
-
-    // 优化渲染性能
-    optimizeRendering() {
-        // 使用 GPU 加速
-        const canvas = graph.get('canvas');
-        if (canvas) {
-            canvas.set('enableCSSTransforms', true);
-        }
-        
-        // 节点数量大时禁用动画
-        if (graph.getNodes().length > 1000) {
-            graph.updateLayout({
-                animate: false
-            });
-        }
-    },
-
-    // 清理未使用的资源
-    cleanupUnusedResources() {
-        const nodes = graph.getNodes();
-        nodes.forEach(node => {
-            if (!node.isVisible()) {
-                node.get('group').get('children').forEach(child => {
-                    if (child.get('type') === 'image') {
-                        child.get('image').src = '';
-                    }
-                });
-            }
-        });
-    },
-
-    // 监控性能
-    startPerformanceMonitoring() {
-        if (window.performance && window.performance.memory) {
-            setInterval(() => {
-                const memory = window.performance.memory;
-                console.log('Memory Usage:', {
-                    total: memory.totalJSHeapSize / 1048576 + 'MB',
-                    used: memory.usedJSHeapSize / 1048576 + 'MB',
-                    limit: memory.jsHeapSizeLimit / 1048576 + 'MB'
-                });
-            }, 10000);
-        }
-    }
-};
-
-  // 然后初始化图实例
+  // 初始化图实例
   const graph = new G6.Graph({
     container: 'container',
     width: container.scrollWidth,
-    height: container.scrollHeight || 500,  // 确保有默认高度
+    height: container.scrollHeight || 500,
     modes: {
       default: ['drag-canvas', 'zoom-canvas', 'drag-node', 'click-select']
     },
     defaultNode: {
-      size: 30,  // 增大默认节点大小
+      size: 30,
       style: {
         fill: '#91d5ff',
         stroke: '#40a9ff',
@@ -252,9 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
         endArrow: true
       }
     },
-    // 使用 canvas 渲染器
     renderer: 'canvas',
-    // 添加布局配置
     layout: {
       type: 'force',
       preventOverlap: true,
@@ -262,8 +95,8 @@ document.addEventListener('DOMContentLoaded', function() {
       edgeStrength: 0.1,
       linkDistance: 100
     },
-    fitView: true,  // 自动适应画布
-    animate: true   // 启用动画
+    fitView: true,
+    animate: true
   });
 
   // 初始化时调用基础优化
@@ -2828,7 +2661,6 @@ document.addEventListener('DOMContentLoaded', function() {
       graphData.edges
         .filter(edge => 
           group.includes(edge.source) && group.includes(edge.target)
-        )
         .forEach(edge => {
           events.push({
             time: new Date(edge.timestamp),
