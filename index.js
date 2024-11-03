@@ -532,7 +532,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     graph.setItemState(edge, 'highlight', true);
                 }
             }
-        }
 
         return {
             avgLength,
@@ -968,7 +967,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return filteredCycles;
     },
 
-    // 生成环路模式��识
+    // 生成环路模式识
     generateCyclePattern(path) {
       const normalized = [...path];
       const minIndex = normalized.indexOf(Math.min(...normalized));
@@ -1354,6 +1353,7 @@ function runAlgorithm() {
   // 添加相关样式
   const style = document.createElement('style');
   style.textContent = `
+    /* 加载提示样式 */
     .loading-tip {
       position: fixed;
       top: 50%;
@@ -1382,6 +1382,37 @@ function runAlgorithm() {
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
+    }
+
+    /* 面板样式 */
+    .section-content {
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+      max-height: 1000px; /* 设置一个足够大的值 */
+    }
+
+    .section-content.collapsed {
+      max-height: 0;
+      padding: 0;
+      margin: 0;
+    }
+
+    .section-header {
+      cursor: pointer;
+      padding: 10px;
+      background: #f5f5f5;
+      border-bottom: 1px solid #e8e8e8;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .section-header:hover {
+      background: #e6f7ff;
+    }
+
+    .toggle-icon {
+      transition: transform 0.3s ease;
     }
   `;
   document.head.appendChild(style);
@@ -1954,7 +1985,7 @@ function runAlgorithm() {
 
     // 计算团伙风险评分
     calculateGroupRiskScore(group) {
-      // 基���分数
+      // 基分数
       let score = group.length * 10;
 
       // 计算内部交易
@@ -5699,7 +5730,7 @@ function runAlgorithm() {
         visualizations: this.captureVisualizations()
       };
 
-      // 根据选择的格��导出
+      // 根据选择的格导出
       const format = document.getElementById('exportFormat').value;
       switch (format) {
         case 'pdf':
@@ -5975,7 +6006,7 @@ function runAlgorithm() {
     localStorage.setItem('sectionStates', JSON.stringify(sectionStates));
   }
 
-  // 初始化面���状态
+  // 初始化面状态
   function initializePanelStates() {
     const sectionStates = JSON.parse(localStorage.getItem('sectionStates') || '{}');
     
