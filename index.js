@@ -138,12 +138,13 @@ document.addEventListener('DOMContentLoaded', function() {
   resizeObserver.observe(container);
 
   // 在数据加载前显示加载提示
-  container.innerHTML = `
-    <div class="loading-container">
-      <div class="loading-spinner"></div>
-      <div class="loading-text">数据加载中...</div>
-    </div>
+  const loadingContainer = document.createElement('div');
+  loadingContainer.className = 'loading-container';
+  loadingContainer.innerHTML = `
+    <div class="loading-spinner"></div>
+    <div class="loading-text">数据加载中...</div>
   `;
+  container.appendChild(loadingContainer);
 
   // 初始化时调用基础优化
   RenderOptimizer.enableBasicOptimizations();
@@ -247,11 +248,8 @@ document.addEventListener('DOMContentLoaded', function() {
       const processedData = preprocessData(data);
       console.log('处理后的数据:', processedData);
       
-      // 隐藏加载提示
-      const loadingContainer = document.querySelector('.loading-container');
-      if (loadingContainer) {
-        loadingContainer.style.display = 'none';
-      }
+      // 清空容器内容
+      container.innerHTML = '';
       
       // 渲染图
       graph.data(processedData);
@@ -272,14 +270,11 @@ document.addEventListener('DOMContentLoaded', function() {
       console.error('错误堆栈:', error.stack);
       
       // 显示错误信息
-      const loadingContainer = document.querySelector('.loading-container');
-      if (loadingContainer) {
-        loadingContainer.innerHTML = `
-          <div class="error-message">
-            数据加载失败，请刷新页面重试
-          </div>
-        `;
-      }
+      container.innerHTML = `
+        <div class="error-message">
+          数据加载失败，请刷新页面重试
+        </div>
+      `;
 
       // 更新统计信息为 0
       updateStats({ nodes: [], edges: [] });
@@ -1274,7 +1269,7 @@ function runAlgorithm() {
   `;
   document.head.appendChild(style);
 
-  // 在现有代码后添加新的功能模块
+  // 在现有��码后添加新的功能模块
 
   // 异常检测模块
   const AnomalyDetection = {
@@ -3967,7 +3962,7 @@ function runAlgorithm() {
       return XLSX.utils.json_to_sheet([analysis]);
     },
 
-    // 生成PDF报告
+    // 生成PDF��告
     async generatePDFReport() {
       const doc = new jsPDF();
       const report = await ReportExport.generateFullReport();
@@ -5951,7 +5946,7 @@ function runAlgorithm() {
     });
   });
 
-  // 在图��例创建时添加样式 - 使用已经声明的 container 变量
+  // 在图例创建时添加样式 - 使用已经声明的 container 变量
   // 删除这行: const container = document.getElementById('container');
   if (container) {
     container.style.width = '100%';
