@@ -523,7 +523,7 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         }
 
-        // 并簇
+        // 并���
         if (mergePair) {
           const [i, j] = mergePair;
           const newCluster = {
@@ -2732,6 +2732,7 @@ function runAlgorithm() {
       graphData.edges
         .filter(edge => 
           group.includes(edge.source) && group.includes(edge.target)
+        ) // 添加缺失的右括号
         .forEach(edge => {
           events.push({
             time: new Date(edge.timestamp),
@@ -4495,7 +4496,7 @@ function runAlgorithm() {
       this.showInfoPanel(infoPanel);
     },
 
-    // 渲染属��信息
+    // 渲染属信息
     renderProperties(properties) {
       if (!properties) return '';
       
