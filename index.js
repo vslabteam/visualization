@@ -292,13 +292,10 @@ document.addEventListener('DOMContentLoaded', function() {
       try {
         // 先移除加载提示
         const loadingContainer = document.querySelector('.loading-container');
-        if (loadingContainer) {
-          loadingContainer.parentNode.removeChild(loadingContainer); // 使用 removeChild 确保完全移除
+        if (loadingContainer && loadingContainer.parentNode) {
+          loadingContainer.parentNode.removeChild(loadingContainer);
         }
 
-        // 确保容器是空的
-        container.innerHTML = '';
-        
         // 渲染数据
         graph.data(processedData);
         graph.render();
@@ -327,7 +324,7 @@ document.addEventListener('DOMContentLoaded', function() {
       console.error('数据加载失败:', error);
       // 显示错误信息并移除加载提示
       const loadingContainer = document.querySelector('.loading-container');
-      if (loadingContainer) {
+      if (loadingContainer && loadingContainer.parentNode) {
         loadingContainer.parentNode.removeChild(loadingContainer);
       }
       container.innerHTML = `
