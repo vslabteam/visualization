@@ -2661,6 +2661,7 @@ document.addEventListener('DOMContentLoaded', function() {
       graphData.edges
         .filter(edge => 
           group.includes(edge.source) && group.includes(edge.target)
+        )
         .forEach(edge => {
           events.push({
             time: new Date(edge.timestamp),
