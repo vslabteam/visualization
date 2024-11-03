@@ -487,32 +487,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 路径分析 - 使用 G6 内置的 findShortestPath 算法
     analyzePaths(graph) {
-        const data = {
-            nodes: graph.save().nodes,
-            edges: graph.save().edges
-        };
-        
-        let totalLength = 0;
-        let pathCount = 0;
+        const data = graph.save();
+        const nodes = data.nodes;
+        const edges = data.edges;
         let maxLength = 0;
         let maxPath = null;
+        let totalLength = 0;
+        let pathCount = 0;
 
-        // 使用 G6 内置的最短路径算法
-        data.nodes.forEach((source, i) => {
-            const shortestPaths = G6.Util.findShortestPath(data, source.id);
-            
-            data.nodes.forEach((target, j) => {
-                if (i < j) {
-                    const path = shortestPaths[target.id];
-                    if (path && path.length > 0) {
-                        const distance = path.length - 1;
-                        totalLength += distance;
-                        pathCount++;
-                        
-                        if (distance > maxLength) {
-                            maxLength = distance;
-                            maxPath = path;
-                        }
+        // 计算所有节点对之间的最短路径
+        nodes.forEach(source => {
+            nodes.forEach(target => {
+                if (source.id !== target.id) {
+                    const paths = this.findAllShortestPaths(source.id, target.id, edges);
+                    if (paths.length > 0) {
+                        paths.forEach(path => {
+                            const length = path.length - 1;
+                            totalLength += length;
+                            pathCount++;
+                            if (length > maxLength) {
+                                maxLength = length;
+                                maxPath = path;
+                            }
+                        });
                     }
                 }
             });
@@ -532,6 +529,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     graph.setItemState(edge, 'highlight', true);
                 }
             }
+        }
 
         return {
             avgLength,
@@ -1044,7 +1042,7 @@ function runAlgorithm() {
   const algorithmType = document.getElementById('algorithmSelect').value;
   const button = document.querySelector('.control-button[onclick="runAlgorithm()"]');
   button.disabled = true;
-  button.textContent = '计算中...';
+  button.textContent = '计算���...';
 
   try {
     // 清除前的高亮
@@ -4679,7 +4677,7 @@ function runAlgorithm() {
     MemoryManager.startMemoryCleanup();
     MemoryManager.monitorMemoryUsage();
     
-    // 优化事件处理
+    // 优化事件处���
     EventOptimizer.throttleEvents();
     EventOptimizer.setupEventDelegation();
   }
@@ -5514,7 +5512,7 @@ function runAlgorithm() {
 
     // 处理时间数据
     processTimeData(data) {
-      // 实现时间数据处理逻辑
+      // 实现��间数据处理逻辑
     },
 
     // 处理金额数据
