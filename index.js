@@ -283,7 +283,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('nodeCount').textContent = data.nodes.length || 0;
     document.getElementById('edgeCount').textContent = data.edges.length || 0;
     
-    // 更新不同类型节点的统计
+    // 更新不同类型节点���统计
     document.getElementById('accountCount').textContent = 
       data.nodes.filter(node => node.type === 'account').length || 0;
     document.getElementById('transactionCount').textContent = 
@@ -1741,7 +1741,7 @@ function runAlgorithm() {
       `;
     },
 
-    // 渲染证据记录
+    // ��染证据记录
     renderEvidence(evidence) {
       return `
         <div class="evidence-view">
@@ -2802,6 +2802,7 @@ function runAlgorithm() {
       graphData.edges
         .filter(edge => 
           group.includes(edge.source) && group.includes(edge.target)
+        )  // 添加缺失的右括号
         .forEach(edge => {
           events.push({
             time: new Date(edge.timestamp),
@@ -2810,7 +2811,7 @@ function runAlgorithm() {
             target: edge.target,
             amount: edge.amount
           });
-        });
+        });  // 添加缺失的右括号
 
       // 按时间排序
       events.sort((a, b) => a.time - b.time);
@@ -3519,7 +3520,7 @@ function runAlgorithm() {
 
   // 添搜索功能
   const SearchModule = {
-    // 执���搜索
+    // 执搜索
     searchNodes() {
       const searchTerm = document.getElementById('nodeSearch').value.toLowerCase();
       const searchResults = [];
@@ -5072,7 +5073,7 @@ function runAlgorithm() {
   window.importData = (file) => DataIOManager.importData(file);
   window.exportData = (format) => DataIOManager.exportData(format);
 
-  // 异常检测可视化模块
+  // 异常���测可视化模块
   const AnomalyVisualization = {
     // 更新异常检测面板
     updateAnomalyPanel(anomalies) {
@@ -5139,7 +5140,7 @@ function runAlgorithm() {
       }
     },
 
-    // 渲染循环交易详情
+    // 渲染循环交易��情
     renderCycleDetails(anomaly) {
       return `
         <div class="cycle-details">
